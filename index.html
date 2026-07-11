@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#005448" />
+<title>Kaiku 2026 · Operaatiokeskus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* ===== Kaiku 2026 -brändi (Visuaalinen ilme V1) ===== */
+:root{
+  --metsa:#005448; --meri:#00445E; --rusko:#542337; --savu:#F9F3E6;
+  --punainen:#FF633A; --oranssi:#FF8940; --kulta:#FFAE40;
+  --magenta:#FF546E; --laventeli:#F0A6CF; --sininen:#6CB7E5;
+  --ink:#2a2a26;
+  --card:#fff;
+  --shadow:0 1px 2px rgba(0,40,55,.05), 0 .7rem 1.8rem rgba(0,40,55,.09);
+  --radius:1.15rem;
+  --head:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+/* skaalaus TV:lle: perusyksikkö seuraa 16:9 -näkymää */
+html{font-size:clamp(9px, calc(.42vw + .60vh), 24px);}
+body{
+  font-family:var(--head); background:var(--savu); color:var(--ink);
+  height:100vh; width:100vw; overflow:hidden; -webkit-font-smoothing:antialiased;
+  line-height:1.25;
+}
+.app{display:grid; grid-template-rows:auto 1fr; height:100vh; width:100vw;}
+
+/* ===== Ylätunniste ===== */
+header{
+  position:relative; background:var(--metsa); color:var(--savu);
+  padding:1.25rem 2rem 1.35rem; overflow:hidden;
+}
+header .kuosi{position:absolute; inset:0; opacity:.13; pointer-events:none}
+/* Kaiku 1 -väriraita alareunassa – terävä brändireuna aaltoviivan tilalle */
+header::after{content:""; position:absolute; left:0; right:0; bottom:0; height:.3rem; z-index:3;
+  background:linear-gradient(90deg,var(--punainen) 0%,var(--oranssi) 42%,var(--kulta) 100%)}
+.hrow{position:relative; z-index:1; display:flex; align-items:center; gap:1.6rem}
+.logo{width:8.2rem; height:auto; flex:0 0 auto}
+.greet{flex:1 1 auto; min-width:0}
+.greet .brandtag{font-size:.86rem; letter-spacing:.3em; text-transform:uppercase; color:var(--kulta); font-weight:700}
+.greet h1{font-size:2.75rem; font-weight:800; line-height:.98; letter-spacing:-.015em; margin-top:.28rem}
+.greet h1 .who{color:var(--kulta)}
+.clockbox{flex:0 0 auto; text-align:right; display:flex; flex-direction:column; align-items:flex-end}
+.clockbox .time{font-size:3.2rem; font-weight:800; line-height:.92; font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+.clockbox .date{font-size:1rem; color:rgba(249,243,230,.82); font-weight:500; text-transform:capitalize; margin-top:.15rem}
+/* Signature: kaiku-taajuuskorjain = elävä signaali / operaatiokeskuksen "kaiku" */
+.live{display:flex; align-items:center; gap:.45rem; font-size:.78rem; font-weight:800; letter-spacing:.22em;
+  color:var(--kulta); margin-bottom:.3rem}
+.live::before{content:""; width:.5rem; height:.5rem; border-radius:50%; background:var(--punainen);
+  box-shadow:0 0 0 0 rgba(255,99,58,.6); animation:beat 1.6s ease-out infinite}
+.eq{display:inline-flex; align-items:flex-end; gap:.16rem; height:1.05rem}
+.eq i{width:.22rem; border-radius:1rem; background:linear-gradient(var(--kulta),var(--oranssi)); animation:eq 1.1s ease-in-out infinite}
+.eq i:nth-child(1){height:.4rem; animation-delay:-.9s; background:linear-gradient(var(--kulta),var(--punainen))}
+.eq i:nth-child(2){height:.9rem; animation-delay:-.5s}
+.eq i:nth-child(3){height:.6rem; animation-delay:-.2s; background:linear-gradient(var(--oranssi),var(--punainen))}
+.eq i:nth-child(4){height:1rem; animation-delay:-.7s}
+@keyframes eq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes beat{0%{box-shadow:0 0 0 0 rgba(255,99,58,.6)}70%,100%{box-shadow:0 0 0 .5rem rgba(255,99,58,0)}}
+@media (prefers-reduced-motion:reduce){.eq i{animation:none}.live::before{animation:none}}
+
+/* ===== Runko: 3 saraketta ===== */
+main{
+  display:grid; grid-template-columns:1.02fr 1.15fr 1.05fr; gap:1.1rem;
+  padding:1.1rem; min-height:0;
+}
+.col{display:flex; flex-direction:column; gap:1.1rem; min-height:0}
+.card{
+  --accent:var(--oranssi);
+  position:relative; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:1.15rem 1.25rem 1.2rem; display:flex; flex-direction:column; min-height:0;
+  border-top:.28rem solid var(--accent);
+}
+.card.dark{background:var(--meri); color:var(--savu)}
+.card.forest{background:var(--metsa); color:var(--savu)}
+/* värikoodattu komentokonsoli – kukin paneeli oma Kaiku-sävynsä */
+.card.timer{--accent:var(--kulta)}
+.card.weather{--accent:var(--meri)}
+.card.shift{--accent:var(--rusko)}
+.card.sched{--accent:var(--oranssi)}
+.card.news{--accent:var(--punainen)}
+.card-h{display:flex; align-items:center; gap:.6rem; margin-bottom:.9rem; padding-bottom:.7rem;
+  border-bottom:1px solid #eee3cd; flex:0 0 auto}
+.card.dark .card-h,.card.forest .card-h{border-bottom-color:rgba(249,243,230,.16)}
+.card-h .ic{flex:0 0 auto; width:2.1rem; height:2.1rem; display:grid; place-items:center; border-radius:.6rem;
+  font-size:1.2rem; line-height:1; background:color-mix(in srgb,var(--accent) 15%,#fff);
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
+.card.dark .card-h .ic,.card.forest .card-h .ic{background:rgba(249,243,230,.12); box-shadow:inset 0 0 0 1.5px rgba(255,174,64,.45)}
+.card-h h2{font-size:1.02rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; color:var(--metsa)}
+.card.dark .card-h h2,.card.forest .card-h h2{color:var(--kulta)}
+.card-h .sub{margin-left:auto; font-size:.85rem; font-weight:700; color:var(--accent)}
+.card.dark .card-h .sub{color:rgba(249,243,230,.7)}
+
+/* ===== Leirikello (timer) ===== */
+.timer{position:relative; overflow:hidden}
+.timer .kuosi{position:absolute; inset:0; opacity:.10}
+.timer .inner{position:relative; z-index:1; display:flex; flex-direction:column; height:100%}
+.timer .phase{font-size:1rem; font-weight:700; color:var(--laventeli); letter-spacing:.03em}
+.tunits{display:flex; gap:.7rem; margin:.7rem 0 .4rem; justify-content:space-between}
+.tunit{flex:1 1 0; background:rgba(249,243,230,.10); border:1px solid rgba(249,243,230,.16);
+  border-radius:.8rem; padding:.7rem .3rem .55rem; text-align:center}
+.tunit .n{font-size:2.9rem; font-weight:800; line-height:.9; font-variant-numeric:tabular-nums; color:var(--savu)}
+.tunit .l{font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:rgba(249,243,230,.7); margin-top:.35rem}
+.tunit.sec .n{color:var(--kulta)}
+.tbar{margin-top:.55rem}
+.tbar .track{height:.7rem; border-radius:1rem; background:rgba(249,243,230,.15); overflow:hidden}
+.tbar .fill{height:100%; border-radius:1rem; background:linear-gradient(90deg,var(--kulta),var(--oranssi),var(--punainen))}
+.tbar .meta{display:flex; justify-content:space-between; font-size:.8rem; color:rgba(249,243,230,.78); margin-top:.4rem; font-weight:500}
+
+/* ===== Sää ===== */
+.weather{flex:1 1 auto}
+.wnow{display:flex; align-items:center; gap:1rem}
+.wnow .sym{font-size:4.2rem; line-height:1; flex:0 0 auto}
+.wnow .temp{font-size:4.2rem; font-weight:800; line-height:.9; font-variant-numeric:tabular-nums}
+.wnow .wmeta{display:flex; flex-direction:column; gap:.15rem}
+.wnow .desc{font-size:1.1rem; font-weight:700}
+.wnow .feels{font-size:.92rem; color:#7a766c}
+.wgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:.55rem; margin-top:.9rem}
+.wcell{background:#f6efdf; border-radius:.7rem; padding:.55rem .5rem; text-align:center}
+.wcell .v{font-size:1.35rem; font-weight:800; font-variant-numeric:tabular-nums; color:var(--meri)}
+.wcell .k{font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:#9a958a; margin-top:.15rem}
+.whours{display:flex; gap:.4rem; margin-top:.85rem; justify-content:space-between}
+.whour{flex:1 1 0; text-align:center; background:#f6efdf; border-radius:.7rem; padding:.5rem .2rem}
+.whour .h{font-size:.75rem; color:#9a958a; font-weight:600}
+.whour .e{font-size:1.5rem; line-height:1.2}
+.whour .t{font-size:.95rem; font-weight:800; color:var(--meri); font-variant-numeric:tabular-nums}
+.fire{
+  margin-top:.9rem; border-radius:.8rem; padding:.75rem .9rem; display:flex; align-items:center; gap:.7rem;
+  font-weight:700; font-size:1rem;
+}
+.fire .fic{font-size:1.6rem; line-height:1}
+.fire.ok{background:rgba(0,84,72,.10); color:var(--metsa)}
+.fire.warn{background:var(--punainen); color:#fff; animation:pulse 2.4s ease-in-out infinite}
+.fire .sml{display:block; font-weight:500; font-size:.82rem; opacity:.85}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,99,58,.5)}50%{box-shadow:0 0 0 .6rem rgba(255,99,58,0)}}
+
+/* ===== Aikataulu ===== */
+.sched{flex:1 1 auto; min-height:0}
+.sched .list{overflow:hidden; display:flex; flex-direction:column; gap:.55rem; flex:1 1 auto; min-height:0}
+.ev{
+  position:relative; background:#fff; border:1px solid #efe6d3; border-radius:.85rem;
+  padding:.6rem .8rem .6rem 1rem; display:flex; gap:.85rem; align-items:center; overflow:hidden;
+}
+.ev::before{content:""; position:absolute; left:0; top:0; bottom:0; width:.4rem; background:var(--accent,var(--oranssi))}
+.ev .time{flex:0 0 auto; min-width:5.4rem; font-weight:800; font-size:1.05rem; color:var(--accent,var(--metsa)); font-variant-numeric:tabular-nums}
+.ev .emoji{font-size:1.5rem; flex:0 0 auto}
+.ev .body{flex:1 1 auto; min-width:0}
+.ev .t{font-weight:700; font-size:1.12rem; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ev .d{font-size:.85rem; color:#7a766c; margin-top:.05rem}
+.ev .tag{flex:0 0 auto; font-size:.72rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  padding:.28rem .55rem; border-radius:1rem}
+.ev.now{border-color:var(--punainen); box-shadow:0 0 0 .12rem var(--punainen)}
+.ev.now .tag{background:var(--punainen); color:#fff}
+.ev.next .tag{background:var(--kulta); color:var(--metsa)}
+.ev.past{opacity:.45}
+.ev.done .t{text-decoration:line-through; text-decoration-color:#cfc7b4}
+
+/* ===== Uutiset ===== */
+.news{flex:1 1 auto; min-height:0}
+.news .scroller{flex:1 1 auto; min-height:0; overflow:hidden; position:relative}
+.news .track{display:flex; flex-direction:column; gap:.85rem}
+.art{display:flex; gap:.9rem; align-items:stretch}
+.art .thumb{flex:0 0 auto; width:7.5rem; height:5rem; border-radius:.7rem; overflow:hidden; background:#eadfca}
+.art .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+.art .meta{flex:1 1 auto; min-width:0; display:flex; flex-direction:column}
+.art .kick{font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--punainen)}
+.art .at{font-weight:800; font-size:1.15rem; line-height:1.12; margin:.12rem 0 .18rem;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.art .ax{font-size:.9rem; color:#6f6b61; line-height:1.28;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.art .by{font-size:.78rem; color:#a49f92; margin-top:auto; font-weight:600}
+.art + .art{border-top:1px solid #efe6d3; padding-top:.85rem}
+
+/* ===== Työvuoro-kortti ===== */
+.shift{min-height:0}
+.shiftnow{display:flex; gap:.8rem}
+.shiftcard{flex:1 1 0; background:#f6efdf; border-radius:.9rem; padding:.85rem .9rem; display:flex; flex-direction:column; gap:.35rem;
+  border-left:.4rem solid var(--accent,var(--oranssi))}
+.shiftcard .role{font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#9a958a}
+.shiftcard .name{font-size:1.7rem; font-weight:800; line-height:1; color:var(--meri)}
+.shiftcard.empty .name{color:#c4bfb2; font-size:1.15rem}
+.shifttask{margin-top:.85rem; background:rgba(0,84,72,.08); border-radius:.8rem; padding:.7rem .9rem;
+  display:flex; gap:.6rem; align-items:center; font-size:1rem}
+.shifttask .ic{font-size:1.3rem}
+.shifttask b{color:var(--metsa)}
+.shiftnext{margin-top:.7rem; font-size:.92rem; color:#7a766c; display:flex; align-items:center; gap:.5rem}
+.shiftnext .tg{font-weight:800; color:var(--oranssi)}
+
+/* ===== Tiketit-painike + popup ===== */
+.ticketbtn{flex:0 0 auto; align-self:center; cursor:pointer; font-family:var(--head); font-weight:800;
+  font-size:1rem; color:var(--metsa); background:var(--kulta); border:none; border-radius:999px;
+  padding:.6rem 1.2rem; display:inline-flex; align-items:center; gap:.5rem; line-height:1}
+.ticketbtn .badge{background:var(--punainen); color:#fff; font-size:.8rem; font-weight:800;
+  min-width:1.3rem; height:1.3rem; padding:0 .35rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center}
+.ticketbtn:active{transform:scale(.97)}
+
+.modal-backdrop{position:fixed; inset:0; z-index:50; background:rgba(0,68,94,.55); backdrop-filter:blur(3px);
+  display:flex; align-items:center; justify-content:center; padding:3vh 3vw}
+.modal-backdrop[hidden]{display:none}
+.modal{width:min(1100px,92vw); max-height:92vh; background:var(--savu); border-radius:1.4rem;
+  box-shadow:0 1.5rem 4rem rgba(0,40,55,.4); display:flex; flex-direction:column; overflow:hidden; animation:pop .22s ease both}
+@keyframes pop{from{opacity:0; transform:translateY(1.4rem) scale(.98)}to{opacity:1; transform:none}}
+.modal-h{flex:0 0 auto; display:flex; align-items:center; gap:1rem; padding:1.1rem 1.4rem; background:var(--metsa); color:var(--savu)}
+.modal-h .mt{font-weight:800; font-size:1.5rem; display:flex; align-items:center; gap:.55rem}
+.modal-h .mt .ic{font-size:1.6rem}
+.modal-h .mstatus{font-size:.9rem; color:rgba(249,243,230,.8); font-weight:600}
+.modal-h .mactions{margin-left:auto; display:flex; gap:.55rem; align-items:center}
+.mbtn{font-family:var(--head); font-weight:700; font-size:.92rem; cursor:pointer; text-decoration:none;
+  border:none; border-radius:999px; padding:.55rem 1rem; background:var(--kulta); color:var(--metsa)}
+.mbtn.ghost{background:rgba(249,243,230,.16); color:var(--savu); border:1px solid rgba(249,243,230,.35)}
+.mclose{background:none; border:none; color:var(--savu); font-size:1.4rem; cursor:pointer; padding:.2rem .5rem; line-height:1}
+.modal-body{flex:1 1 auto; min-height:0; overflow-y:auto; padding:1.3rem 1.4rem;
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem; align-content:start}
+.tk{background:#fff; border-radius:1rem; box-shadow:var(--shadow); padding:1rem 1.1rem; border-top:.4rem solid var(--punainen);
+  display:flex; flex-direction:column; gap:.4rem}
+.tk .tk-top{display:flex; align-items:center; gap:.5rem}
+.tk .tk-status{font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#fff;
+  background:var(--punainen); padding:.22rem .6rem; border-radius:999px}
+.tk .tk-id{font-size:.8rem; color:#a49f92; font-weight:700; margin-left:auto}
+.tk .tk-title{font-weight:800; font-size:1.2rem; line-height:1.15; color:var(--ink)}
+.tk .tk-desc{font-size:.95rem; color:#6f6b61; line-height:1.35;
+  display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden}
+.tk .tk-meta{margin-top:auto; font-size:.82rem; color:#a49f92; font-weight:600; display:flex; gap:.8rem; flex-wrap:wrap}
+.modal-empty,.modal-note{grid-column:1/-1; text-align:center; padding:2.5rem 1rem; color:#6f6b61}
+.modal-empty .big,.modal-note .big{font-size:3.4rem; margin-bottom:.6rem}
+.modal-empty .t{font-weight:800; font-size:1.6rem; color:var(--metsa)}
+.modal-note .t{font-weight:800; font-size:1.5rem; color:var(--meri)}
+.modal-note .d{max-width:44rem; margin:.5rem auto 0; line-height:1.45; font-size:1.02rem}
+.modal-note .nbtn{display:inline-block; margin-top:1rem; background:var(--metsa); color:var(--savu);
+  text-decoration:none; font-weight:800; font-size:1.05rem; padding:.75rem 1.5rem; border-radius:999px; cursor:pointer; border:none}
+
+.muted{color:#a49f92; font-size:.95rem; font-weight:500}
+.spin{display:inline-block; width:1rem; height:1rem; border:.18rem solid #d8cfba; border-top-color:var(--oranssi);
+  border-radius:50%; animation:sp .8s linear infinite; vertical-align:-.15rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+.dot{display:inline-block; width:.55rem; height:.55rem; border-radius:50%; background:var(--kulta); margin-right:.35rem}
+.live-off .dot{background:#c9c1ae}
+.hidden{display:none!important}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== YLÄTUNNISTE ===================== -->
+  <header>
+    <svg class="kuosi" viewBox="0 0 1920 220" preserveAspectRatio="xMinYMin slice" aria-hidden="true">
+      <defs>
+        <pattern id="kp" width="46" height="64" patternUnits="userSpaceOnUse">
+          <path d="M11 -4 V30 a11 11 0 0 1 -22 0 M11 30 V64 M34 0 V34 a11 11 0 0 0 22 0 M34 34 V68"
+                fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+        </pattern>
+      </defs>
+      <rect width="1920" height="220" fill="url(#kp)"/>
+    </svg>
+
+    <div class="hrow">
+      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1000" role="img" aria-label="Kaiku 2026">
+        <defs><style>.lo1{fill:#ffae40}.lo3{fill:#ff633a}.lo4{fill:#f9f3e6}</style></defs>
+        <path class="lo3" d="M544,373.1c-5.8-5.17-14.64-7.76-26.54-7.76s-20.75,2.5-26.54,7.51c-5.8,5.01-8.69,12.51-8.69,22.53s2.89,17.44,8.69,22.28c5.79,4.84,14.64,7.26,26.54,7.26s20.74-2.5,26.54-7.51c5.79-5.01,8.69-12.51,8.69-22.52,0-9.34-2.9-16.6-8.69-21.77Z"/>
+        <rect class="lo1" x="489.02" y="444.91" width="57.02" height="201.7"/>
+        <path class="lo1" d="M575.35,456.92c0,31.49,25.53,57.02,57.02,57.02v-148.6h-57.02v91.58Z"/>
+        <path class="lo1" d="M684.69,417.68c0,53.36-5.1,78.89-39.18,96.26,63.38,0,96.2-34.47,96.2-96.26v-17.84h-57.02v17.84Z"/>
+        <path class="lo1" d="M828.11,379.84v-42.65c0-39.54-32.17-71.71-71.71-71.71s-71.71,32.17-71.71,71.71h0v42.65h57.02v-42.65h0c0-8.1,6.59-14.69,14.69-14.69s14.69,6.59,14.69,14.69v42.65h57.02Z"/>
+        <path class="lo1" d="M489.02,829.56h0c0,8.1-6.59,14.69-14.69,14.69s-14.69-6.59-14.69-14.69h0v-162.95h-57.02v162.95h0c0,39.54,32.17,71.71,71.71,71.71s71.71-32.17,71.71-71.71h0v-162.95h-57.02v162.95Z"/>
+        <path class="lo1" d="M575.35,182.39v162.95h57.02v-162.95h0c0-39.54-32.17-71.71-71.71-71.71s-71.71,32.17-71.71,71.71h0v162.95h57.02v-162.95h0c0-8.1,6.59-14.69,14.69-14.69s14.69,6.59,14.69,14.69h0Z"/>
+        <path class="lo1" d="M846.18,592.63c-14.47-2.64-18.07-14.36-18.07-29.68v-163.11h-57.02v171.8c0,50.54,21.1,74.96,57.02,74.96,17.32,0,31.87-10.12,40.94-28.51,8.89-18.02,10.98-35.36,10.98-55.91-6.89,20.42-21.19,32.74-33.84,30.44Z"/>
+        <path class="lo1" d="M402.63,595.27v51.34h57.02v-203.53c0-45.57-32.97-77.74-73.63-77.74s-73.63,25.78-73.63,66.45c0,6.18.67,13.72,3.19,20.63,2.31-24.84,19.49-43.53,43.53-43.53s43.53,16.02,43.53,47.03v138.13s0,.09,0,.13c0,.08,0,.15,0,.23,0,.29,0,.58,0,.87Z"/>
+        <rect class="lo4" x="890.02" y="399.84" width="57.02" height="246.77"/>
+        <path class="lo4" d="M645.51,523.94h-13.14c-24.09,0-45.21-12.72-57.02-31.8v154.48h57.02v-112.68c40.84,0,52.32,32.89,52.32,86.26v26.42h57.02v-26.42c0-61.79-32.82-96.26-96.2-96.26Z"/>
+        <path class="lo4" d="M287.07,593.87c-3.67-34.95,9.14-58.34,22.1-72.66-10.37-40.64-41.51-62.89-92.32-62.89h-13.14v-135.8h-57.02v324.09h57.02v-168.4c34.31,0,52.32,9.06,52.32,76.49v91.9h54.44c-12.87-11.23-20.92-29.04-23.4-52.74Z"/>
+        <path class="lo4" d="M256.03,322.52v29.68c0,53.36-5.1,78.89-39.18,96.26,63.38,0,96.2-34.47,96.2-96.26v-29.68h-57.02Z"/>
+        <path class="lo4" d="M371.04,516.87c12.09-13.96,19.6-21.89,21.59-38.55-21.72,20.49-43.28,22.98-64.98,39.45-18.23,13.84-34.54,37.86-30.64,75.06,3.83,36.51,21.45,57.7,54.13,57.7,15.94,0,27.85-5.39,34.4-18.45,6.31-12.57,7.09-24.27,7.09-37.91-5.06,6.51-17.7,11.93-29.37,8.62-16.85-4.79-23.09-27.35-14.74-50.36,5.55-15.32,13.07-24.63,22.53-35.55Z"/>
+        <path class="lo4" d="M596.3,727.28l14.96-9.11c5.14-3.14,9.65-6.77,13.17-11.58,3.75-5.1,6.07-11.13,6.07-19.21,0-4.87-1.12-9-3.37-12.37-2.25-3.37-5.44-5.94-9.56-7.7-4.12-1.76-9.04-2.64-14.73-2.64-6.45,0-11.92,1.11-16.42,3.32-4.5,2.21-7.84,5.38-10.01,9.5-2.18,4.12-3.04,9.07-2.59,14.85l17.21,2.25c-.3-3.44.22-6.86,2.11-9.72,1.62-2.45,4.35-4.03,7.99-4.03,2.1,0,3.9.34,5.4,1.01,3.75,1.68,4.83,4.86,4.83,7.53,0,3.19-1.06,5.86-2.93,8.43-1.87,2.56-4.29,4.79-7.2,6.63l-28.12,18.78v18.45h57.13v-15.07l-36.1.45v-.67Z"/>
+        <path class="lo4" d="M725.52,671.27c-4.57-3-10.12-4.5-16.65-4.5s-12.13,1.52-16.81,4.55c-4.69,3.04-8.29,7.46-10.8,13.27-2.51,5.81-3.77,12.95-3.77,21.43,0,8.82,1.49,16.5,5.98,22.99,4.66,6.72,12.06,10.66,22.72,10.66,6.55,0,12.06-1.31,16.53-3.94,9.03-5.32,13.51-16.5,13.51-30.98,0-8.25-1.2-15.28-3.6-21.09-2.4-5.81-5.89-10.22-10.46-13.21ZM711.94,730.71c-1.5.9-3.22,1.35-5.17,1.35-2.63,0-4.9-.98-6.81-2.95-3.62-3.75-4.94-11.13-4.94-19.9,0-8.25,1.32-14.75,3.79-18.87,1.84-3.07,4.35-4.6,7.79-4.6,2.85,0,5.19.94,7.03,2.81,3.69,3.75,5.46,11.13,5.46,22.28,0,10.86-2.36,17.87-7.14,19.9Z"/>
+        <path class="lo4" d="M806.32,727.28l14.96-9.11c5.14-3.14,9.65-6.77,13.17-11.58,3.75-5.1,6.07-11.13,6.07-19.21,0-4.87-1.12-9-3.37-12.37-2.25-3.37-5.44-5.94-9.56-7.7-4.12-1.76-9.04-2.64-14.73-2.64-6.45,0-11.92,1.11-16.42,3.32-4.5,2.21-7.84,5.38-10.01,9.5-2.18,4.12-3.04,9.07-2.59,14.85l17.21,2.25c-.3-3.44.22-6.86,2.11-9.72,1.62-2.45,4.35-4.03,7.99-4.03,2.1,0,3.9.34,5.4,1.01,3.75,1.68,4.83,4.86,4.83,7.53,0,3.19-1.06,5.86-2.93,8.43-1.87,2.56-4.29,4.79-7.2,6.63l-28.12,18.78v18.45h57.13v-15.07l-36.1.45v-.67Z"/>
+        <path class="lo4" d="M937.84,698.77c-3.41-1.69-7.18-2.53-11.3-2.53-1.53,0-2.99.14-4.34.4-9.91,1.94-13.28,10.54-11.17,17.48,1.92-3.27,5.24-5.29,9.68-5.29,4.36,0,7.56,1.72,9.12,4.89.9,1.54,1.35,3.39,1.35,5.57,0,3.14-1.05,5.61-3.1,7.59-2.29,2.2-5.2,2.87-7.82,2.87-4.11,0-7.16-1.31-9.95-3.01-3.11-2.09-5.36-6.44-6.51-10.6-.75-3.44-1.2-6.55-1.2-11.36,0-6.44,1.12-11.65,3.43-16.31,2.29-4.62,5.73-6.63,9.29-6.63,3.71,0,6.6,1.35,8.43,4.05,1.12,1.5,1.76,3.67,1.91,6.52l16.98-2.59c-.16-8.1-3.44-13.98-9.87-17.71-4.79-2.66-10.7-3.6-16.42-3.6-9.03,0-16.9,3.14-23.09,9.4-6.19,6.26-9.29,15.66-9.29,28.23,0,12.22,2.83,21.63,8.49,28.23,5.66,6.6,13.93,9.9,24.8,9.9,7.29,0,13.06-1.67,17.31-5,4.35-3.41,6.85-8.34,8.03-14.55.97-3,1.46-5.96,1.46-8.89,0-9.9-4.28-16.55-10.53-20.07Z"/>
+      </svg>
+
+      <div class="greet">
+        <div class="brandtag">Kaiku 2026 · Operaatiokeskus</div>
+        <h1 id="greeting">Hyvää päivää, <span class="who">Operaatiokeskus</span></h1>
+      </div>
+
+      <button class="ticketbtn" id="openTickets" type="button">🎫 Tiketit <span class="badge" id="ticketBadge" hidden>0</span></button>
+
+      <div class="clockbox">
+        <div class="live"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span> LIVE</div>
+        <div class="time" id="clock">–.–.–</div>
+        <div class="date" id="date">–</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== RUNKO ===================== -->
+  <main>
+    <!-- SARAKE 1: leirikello + sää + työvuoro -->
+    <div class="col">
+      <div class="card forest timer" style="flex:0 0 auto">
+        <svg class="kuosi" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="220" fill="url(#kp)"/></svg>
+        <div class="inner">
+          <div class="card-h"><span class="ic">⏱️</span><h2>Leirikello</h2></div>
+          <div class="phase" id="timerPhase">Leiri käynnissä</div>
+          <div class="tunits">
+            <div class="tunit"><div class="n" id="tD">0</div><div class="l">vrk</div></div>
+            <div class="tunit"><div class="n" id="tH">00</div><div class="l">tuntia</div></div>
+            <div class="tunit"><div class="n" id="tM">00</div><div class="l">min</div></div>
+            <div class="tunit sec"><div class="n" id="tS">00</div><div class="l">sek</div></div>
+          </div>
+          <div class="tbar">
+            <div class="track"><div class="fill" id="tFill" style="width:0%"></div></div>
+            <div class="meta"><span>Pe 10.7. klo 9</span><span id="tPct">0 %</span><span>La 18.7.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card weather" style="flex:0 0 auto">
+        <div class="card-h"><span class="ic">🌤️</span><h2>Sää · Evo, Hämeenlinna</h2><span class="sub" id="wStatus"><span class="spin"></span></span></div>
+        <div id="weatherBody" class="muted">Ladataan säätietoja…</div>
+      </div>
+
+      <div class="card shift" style="flex:1 1 auto">
+        <div class="card-h"><span class="ic">🦺</span><h2>Työvuorossa nyt</h2><span class="sub" id="shiftDay">–</span></div>
+        <div id="shiftBody" class="muted">Ladataan työvuoroja…</div>
+      </div>
+    </div>
+
+    <!-- SARAKE 2: aikataulu -->
+    <div class="col">
+      <div class="card sched">
+        <div class="card-h"><span class="ic">📋</span><h2>Päivän ohjelma</h2><span class="sub" id="schedDay">–</span></div>
+        <div class="list" id="schedList"><div class="muted">Ladataan ohjelmaa…</div></div>
+      </div>
+    </div>
+
+    <!-- SARAKE 3: uutiset -->
+    <div class="col">
+      <div class="card news">
+        <div class="card-h"><span class="ic">📣</span><h2>Pääuutiset · Kaiku-sovellus</h2><span class="sub live-off" id="newsStatus"><span class="dot"></span>–</span></div>
+        <div class="scroller"><div class="track" id="newsTrack"><div class="muted">Ladataan uutisia…</div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===================== TIKETIT-POPUP (uudet tiketit) ===================== -->
+<div class="modal-backdrop" id="ticketModal" hidden>
+  <div class="modal">
+    <div class="modal-h">
+      <div class="mt"><span class="ic">🎫</span> Uudet tiketit · Opke/Ospa</div>
+      <div class="mstatus" id="ticketStatus"><span class="spin"></span> Ladataan…</div>
+      <div class="mactions">
+        <button id="ticketLogin" type="button" class="mbtn ghost">🔑 Kirjaudu</button>
+        <button id="ticketRefresh" type="button" class="mbtn ghost">↻ Päivitä</button>
+        <a href="https://partio.sharepoint.com/sites/Tiketin/Lists/OpkeOspa/AllItems.aspx?viewid=6ab91000-1635-4e47-b2a8-cb248f338cff" target="_blank" rel="noopener" class="mbtn">Avaa SharePointissa ↗</a>
+        <button id="ticketClose" type="button" class="mclose" aria-label="Sulje">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="ticketBody">
+      <div class="muted">Ladataan uusia tikettejä…</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ============================================================
+   Kaiku 2026 · Operaatiokeskus — TV-dashboard
+   Yhden sivun HTML/JS/CSS. Datalähteet:
+     • Sää + metsäpalovaroitus: Ilmatieteen laitos (avoin data, WFS)
+     • Uutiset: Kaiku 2026 -sovellus (Corego/GoodBarber)
+     • Ohjelma: Leirilukkari (Kaiku 2026 -rajapinta)  + upotettu varmuuskopio
+   ============================================================ */
+const TZ = 'Europe/Helsinki';
+const CAMP_START = new Date('2026-07-10T09:00:00+03:00'); // Saapuminen / leiri alkaa
+const CAMP_END   = new Date('2026-07-18T16:30:00+03:00'); // Poistuminen
+const EVO = { lat: 61.208, lon: 25.128, name: 'Evo' };
+
+/* ---- Helsingin ajan apurit ---- */
+function helParts(d){
+  const s = new Date(d).toLocaleString('sv-SE', { timeZone: TZ }); // 'YYYY-MM-DD HH:MM:SS'
+  return { date: s.slice(0,10), hm: s.slice(11,16), h: +s.slice(11,13), m: +s.slice(14,16) };
+}
+const pad = n => String(n).padStart(2,'0');
+
+/* ============ KELLO + TERVEHDYS ============ */
+function greetWord(h){
+  if (h >= 5  && h < 10) return 'Hyvää huomenta';
+  if (h >= 10 && h < 17) return 'Hyvää päivää';
+  if (h >= 17 && h < 23) return 'Hyvää iltaa';
+  return 'Hyvää yötä';
+}
+const WD = ['sunnuntaina','maanantaina','tiistaina','keskiviikkona','torstaina','perjantaina','lauantaina'];
+const MO = ['tammikuuta','helmikuuta','maaliskuuta','huhtikuuta','toukokuuta','kesäkuuta','heinäkuuta','elokuuta','syyskuuta','lokakuuta','marraskuuta','joulukuuta'];
+function tickClock(){
+  const now = new Date();
+  const p = helParts(now);
+  document.getElementById('clock').textContent = p.hm.replace(':','.');
+  // päiväys Helsingin kalenterissa
+  const hd = new Date(now.toLocaleString('en-US', { timeZone: TZ }));
+  document.getElementById('date').textContent =
+    `${WD[hd.getDay()]} ${hd.getDate()}. ${MO[hd.getMonth()]} ${hd.getFullYear()}`;
+  document.getElementById('greeting').innerHTML =
+    `${greetWord(p.h)}, <span class="who">Operaatiokeskus</span>`;
+}
+
+/* ============ LEIRIKELLO ============ */
+function tickTimer(){
+  const now = Date.now();
+  const phaseEl = document.getElementById('timerPhase');
+  let diff, negative = false;
+  if (now < CAMP_START.getTime()) { diff = CAMP_START.getTime() - now; negative = true; phaseEl.textContent = 'Leiri alkaa'; }
+  else if (now > CAMP_END.getTime()) { diff = now - CAMP_END.getTime(); phaseEl.textContent = 'Leiri päättynyt · aikaa kulunut'; }
+  else { diff = now - CAMP_START.getTime(); phaseEl.textContent = 'Leiri käynnissä · aikaa kulunut'; }
+  if (negative) phaseEl.textContent = 'Leiri alkaa · aikaa jäljellä';
+
+  const s = Math.floor(diff/1000);
+  const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60), sec = s%60;
+  document.getElementById('tD').textContent = d;
+  document.getElementById('tH').textContent = pad(h);
+  document.getElementById('tM').textContent = pad(m);
+  document.getElementById('tS').textContent = pad(sec);
+
+  const total = CAMP_END.getTime() - CAMP_START.getTime();
+  let pct = (now - CAMP_START.getTime()) / total * 100;
+  pct = Math.max(0, Math.min(100, pct));
+  document.getElementById('tFill').style.width = pct.toFixed(1) + '%';
+  document.getElementById('tPct').textContent = Math.round(pct) + ' %';
+}
+
+/* ============ SÄÄ (Ilmatieteen laitos, WFS) ============ */
+const SMART = { // SmartSymbol → { emoji, teksti }  (yö = koodi + 100)
+  1:['☀️','Selkeää'], 2:['🌤️','Enimmäkseen selkeää'], 4:['⛅','Puolipilvistä'],
+  6:['🌥️','Enimmäkseen pilvistä'], 7:['☁️','Pilvistä'], 9:['🌫️','Sumua'],
+  71:['🌫️','Utua'], 21:['🌦️','Heikkoja kuuroja'], 22:['🌦️','Sadekuuroja'], 23:['🌧️','Voimakkaita kuuroja'],
+  31:['🌧️','Heikkoa vesisadetta'], 32:['🌧️','Vesisadetta'], 33:['🌧️','Voimakasta vesisadetta'],
+  41:['🌨️','Heikkoja lumikuuroja'], 42:['🌨️','Lumikuuroja'], 43:['🌨️','Voimakkaita lumikuuroja'],
+  51:['❄️','Heikkoa lumisadetta'], 52:['❄️','Lumisadetta'], 53:['❄️','Voimakasta lumisadetta'],
+  61:['⛈️','Ukkoskuuroja'], 64:['⛈️','Voimakkaita ukkoskuuroja'],
+  81:['🌨️','Heikkoja räntäkuuroja'], 82:['🌨️','Räntäkuuroja'], 83:['🌨️','Voimakkaita räntäkuuroja']
+};
+function symbolInfo(code){
+  if (code == null || isNaN(code)) return ['🌡️','–'];
+  const night = code >= 100; let c = night ? code - 100 : code;
+  const info = SMART[c] || SMART[Math.floor(c/10)*10] || ['🌡️','Vaihtelevaa'];
+  if (night && info[0] === '☀️') return ['🌙', 'Selkeää'];
+  if (night && info[0] === '🌤️') return ['🌙','Enimmäkseen selkeää'];
+  return info;
+}
+function parseSeries(xml){
+  // palauttaa { Param: [ {t: Date, v: number}, ... ] }
+  const out = {};
+  const doc = new DOMParser().parseFromString(xml, 'text/xml');
+  const series = doc.getElementsByTagNameNS('*','MeasurementTimeseries');
+  for (const s of series){
+    const id = s.getAttribute('gml:id') || s.getAttributeNS('http://www.opengis.net/gml/3.2','id') || s.id || '';
+    const param = id.split('-').pop();
+    const pts = [];
+    const nodes = s.getElementsByTagNameNS('*','MeasurementTVP');
+    for (const n of nodes){
+      const t = n.getElementsByTagNameNS('*','time')[0];
+      const v = n.getElementsByTagNameNS('*','value')[0];
+      if (!t || !v) continue;
+      pts.push({ t: new Date(t.textContent.trim()), v: parseFloat(v.textContent.trim()) });
+    }
+    out[param] = pts;
+  }
+  return out;
+}
+function nearestNow(pts){
+  if (!pts || !pts.length) return null;
+  const now = Date.now();
+  let best = pts[0], bd = Infinity;
+  for (const p of pts){ const dd = Math.abs(p.t.getTime()-now); if (dd < bd){ bd = dd; best = p; } }
+  return best;
+}
+function num(v, dec=0){ return (v==null||isNaN(v)) ? '–' : v.toFixed(dec); }
+
+async function loadWeather(){
+  const params = 'Temperature,FeelsLike,WindSpeedMS,WindDirection,SmartSymbol,Precipitation1h,Humidity,ForestFireWarning';
+  const start = new Date(Date.now() - 3600e3).toISOString().slice(0,19)+'Z';
+  const end   = new Date(Date.now() + 27*3600e3).toISOString().slice(0,19)+'Z';
+  const url = 'https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature'
+    + '&storedquery_id=fmi::forecast::edited::weather::scandinavia::point::timevaluepair'
+    + `&latlon=${EVO.lat},${EVO.lon}&parameters=${params}&timestep=60&starttime=${start}&endtime=${end}`;
+  const statusEl = document.getElementById('wStatus');
+  try{
+    const r = await fetch(url); if (!r.ok) throw new Error('HTTP '+r.status);
+    const xml = await r.text();
+    const S = parseSeries(xml);
+    renderWeather(S);
+    statusEl.innerHTML = 'Päivitetty ' + helParts(Date.now()).hm.replace(':','.');
+  }catch(e){
+    statusEl.textContent = 'Ei yhteyttä';
+    document.getElementById('weatherBody').innerHTML =
+      '<div class="muted">Säätietojen haku ei onnistunut. Yritetään uudelleen…</div>';
+  }
+}
+function windDir(deg){
+  if (deg==null||isNaN(deg)) return '';
+  const dirs = ['pohjoisesta','koillisesta','idästä','kaakosta','etelästä','lounaasta','lännestä','luoteesta'];
+  return dirs[Math.round(deg/45)%8];
+}
+function renderWeather(S){
+  const cur = {
+    temp: nearestNow(S.Temperature), feels: nearestNow(S.FeelsLike),
+    wind: nearestNow(S.WindSpeedMS), dir: nearestNow(S.WindDirection),
+    sym: nearestNow(S.SmartSymbol), rain: nearestNow(S.Precipitation1h),
+    hum: nearestNow(S.Humidity)
+  };
+  const [emoji, desc] = symbolInfo(cur.sym ? cur.sym.v : null);
+  const t = cur.temp ? cur.temp.v : null;
+  const feels = cur.feels ? cur.feels.v : null;
+  const wind = cur.wind ? cur.wind.v : null;
+  const dir = cur.dir ? windDir(cur.dir.v) : '';
+
+  // seuraavat tunnit (3 h välein, 5 kpl)
+  const now = Date.now();
+  const future = (S.Temperature||[]).filter(p => p.t.getTime() >= now - 1800e3);
+  const strip = [];
+  for (let i=0; i<future.length && strip.length<5; i+=3) strip.push(future[i]);
+
+  const hoursHtml = strip.map(p => {
+    const hp = helParts(p.t);
+    const symp = (S.SmartSymbol||[]).find(x => x.t.getTime()===p.t.getTime());
+    const [e] = symbolInfo(symp ? symp.v : null);
+    return `<div class="whour"><div class="h">${hp.hm.replace(':','.')}</div><div class="e">${e}</div><div class="t">${num(p.v)}°</div></div>`;
+  }).join('');
+
+  // metsäpalovaroitus
+  const ff = S.ForestFireWarning || [];
+  const active = ff.some(p => !isNaN(p.v) && p.v >= 2);
+  const fireHtml = active
+    ? `<div class="fire warn"><span class="fic">🔥</span><div>Metsäpalovaroitus voimassa<span class="sml">Avotulen teko kielletty · Ilmatieteen laitos</span></div></div>`
+    : `<div class="fire ok"><span class="fic">✅</span><div>Ei metsäpalovaroitusta<span class="sml">Noudata silti tulentekovarovaisuutta · Ilmatieteen laitos</span></div></div>`;
+
+  document.getElementById('weatherBody').innerHTML = `
+    <div class="wnow">
+      <div class="sym">${emoji}</div>
+      <div class="temp">${num(t)}°</div>
+      <div class="wmeta">
+        <div class="desc">${desc}</div>
+        <div class="feels">Tuntuu kuin ${num(feels)}° ${dir?('· tuuli '+dir):''}</div>
+      </div>
+    </div>
+    <div class="wgrid">
+      <div class="wcell"><div class="v">${num(wind,1)} m/s</div><div class="k">Tuuli</div></div>
+      <div class="wcell"><div class="v">${cur.rain?num(cur.rain.v,1):'0'} mm</div><div class="k">Sade /h</div></div>
+      <div class="wcell"><div class="v">${cur.hum?num(cur.hum.v):'–'} %</div><div class="k">Kosteus</div></div>
+    </div>
+    <div class="whours">${hoursHtml}</div>
+    ${fireHtml}
+  `;
+}
+
+/* ============ PÄIVÄN OHJELMA (Leirilukkari) ============ */
+// Upotettu yleisohjelma (koko leirin yhteiset tapahtumat) — varmuuskopio.
+const SCHED_SNAP = [{"a":"Saapuminen","s":"2026-07-10T06:00:00.000Z","e":"2026-07-10T09:00:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Majoittumista ja rakentamista","s":"2026-07-10T10:30:00.000Z","e":"2026-07-10T13:30:00.000Z","l":"Savuissa","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Avajaiset","s":"2026-07-10T15:00:00.000Z","e":"2026-07-10T17:30:00.000Z","l":"Päälava","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Iltapala","s":"2026-07-10T17:30:00.000Z","e":"2026-07-10T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Hiljaisuus","s":"2026-07-10T19:00:00.000Z","e":"2026-07-10T19:15:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Haastavan ryhmän kanssa toimiminen -koulutus ","s":"2026-07-11T06:30:00.000Z","e":"2026-07-11T09:30:00.000Z","l":"LPKP goes Kaiku (Leirisuora)","g":["vaeltajat","aikuiset"]},{"a":"Tervetuloa partioon –koulutus","s":"2026-07-11T10:30:00.000Z","e":"2026-07-11T13:30:00.000Z","l":"LPKP goes Kaiku (Leirisuora (lähtö teltalta))","g":["vaeltajat","aikuiset"]},{"a":"Ansiomerkkiehdotuksen ABC & ansiomerkkiraati ","s":"2026-07-11T11:30:00.000Z","e":"2026-07-11T13:30:00.000Z","l":"LPKP goes Kaiku (Leirisuora)","g":["vaeltajat","aikuiset"]},{"a":"Savuilta","s":"2026-07-11T15:00:00.000Z","e":"2026-07-11T16:00:00.000Z","l":"Savuissa","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Nuotioilta","s":"2026-07-11T16:30:00.000Z","e":"2026-07-11T17:30:00.000Z","l":"Monumentti","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Iltapala","s":"2026-07-11T17:30:00.000Z","e":"2026-07-11T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Hiljaisuus","s":"2026-07-11T19:00:00.000Z","e":"2026-07-11T19:15:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Tervetuloa partioon –koulutus ","s":"2026-07-12T06:30:00.000Z","e":"2026-07-12T09:30:00.000Z","l":"LPKP goes Kaiku (Leirisuora (lähtö teltalta))","g":["vaeltajat","aikuiset"]},{"a":"Lippukunta syyskuntoon ","s":"2026-07-12T10:30:00.000Z","e":"2026-07-12T13:30:00.000Z","l":"LPKP goes Kaiku (Leirisuora)","g":["vaeltajat","aikuiset"]},{"a":"Samoajailta","s":"2026-07-12T15:00:00.000Z","e":"2026-07-12T17:30:00.000Z","l":"ZillZone","g":["samoajat"]},{"a":"SuSe-bileet","s":"2026-07-12T16:00:00.000Z","e":"2026-07-12T17:00:00.000Z","l":"","g":["suset"]},{"a":"Iltapala","s":"2026-07-12T17:30:00.000Z","e":"2026-07-12T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Hiljaisuus","s":"2026-07-12T19:00:00.000Z","e":"2026-07-12T19:15:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Vierailupäivä","s":"2026-07-13T06:00:00.000Z","e":"2026-07-13T09:00:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Haastavan ryhmän kanssa toimiminen -koulutus","s":"2026-07-13T06:30:00.000Z","e":"2026-07-13T09:30:00.000Z","l":"LPKP goes Kaiku (Leirisuora)","g":["aikuiset","vaeltajat"]},{"a":"Laaksot avoinna vierailijoille","s":"2026-07-13T07:00:00.000Z","e":"2026-07-13T11:00:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Viestintä ja markkinointi osana elinvoimaista lippukuntaa","s":"2026-07-13T10:00:00.000Z","e":"2026-07-13T11:00:00.000Z","l":"LPKP goes Kaiku (Leirisuora)","g":["vaeltajat","aikuiset"]},{"a":"Vierailupäivä","s":"2026-07-13T10:30:00.000Z","e":"2026-07-13T13:30:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Poistuminen","s":"2026-07-13T10:30:00.000Z","e":"2026-07-13T13:30:00.000Z","l":"","g":["suset"]},{"a":"Haikin pakkaus","s":"2026-07-13T10:30:00.000Z","e":"2026-07-13T13:30:00.000Z","l":"","g":["samoajat","tarpojat"]},{"a":"Keskiäiset","s":"2026-07-13T15:00:00.000Z","e":"2026-07-13T17:00:00.000Z","l":"Päälava","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Iltapala","s":"2026-07-13T17:30:00.000Z","e":"2026-07-13T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Tarpojabileet","s":"2026-07-13T18:00:00.000Z","e":"2026-07-13T19:30:00.000Z","l":"Ohjelmalava","g":["tarpojat"]},{"a":"Hiljaisuus","s":"2026-07-13T20:30:00.000Z","e":"2026-07-13T20:45:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Haikki","s":"2026-07-14T06:00:00.000Z","e":"2026-07-14T21:00:00.000Z","l":"","g":["samoajat","tarpojat"]},{"a":"Vaeltajailta","s":"2026-07-14T15:00:00.000Z","e":"2026-07-14T17:30:00.000Z","l":"ZillZone","g":["vaeltajat"]},{"a":"Iltapala","s":"2026-07-14T17:30:00.000Z","e":"2026-07-14T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Aikuisten bileet","s":"2026-07-14T18:00:00.000Z","e":"2026-07-14T19:30:00.000Z","l":"Ohjelmalava","g":["aikuiset"]},{"a":"Hiljaisuus","s":"2026-07-14T20:30:00.000Z","e":"2026-07-14T20:45:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Haikki","s":"2026-07-15T04:00:00.000Z","e":"2026-07-15T09:00:00.000Z","l":"","g":["samoajat","tarpojat"]},{"a":"Huollot ja palautuminen","s":"2026-07-15T10:30:00.000Z","e":"2026-07-15T12:00:00.000Z","l":"","g":["samoajat","tarpojat"]},{"a":"Leirin jumalanpalvelus","s":"2026-07-15T12:00:00.000Z","e":"2026-07-15T13:30:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Haikin voittajan julistus","s":"2026-07-15T15:00:00.000Z","e":"2026-07-15T15:30:00.000Z","l":"ZillZone","g":[]},{"a":"Tarpojailta","s":"2026-07-15T15:00:00.000Z","e":"2026-07-15T17:30:00.000Z","l":"ZillZone","g":["tarpojat"]},{"a":"Iltapala","s":"2026-07-15T17:30:00.000Z","e":"2026-07-15T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Samoaja-Vaeltajabileet","s":"2026-07-15T18:00:00.000Z","e":"2026-07-15T19:30:00.000Z","l":"Ohjelmalava","g":["samoajat","vaeltajat"]},{"a":"Hiljaisuus","s":"2026-07-15T20:30:00.000Z","e":"2026-07-15T20:45:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Lippukunta syyskuntoon ","s":"2026-07-16T06:00:00.000Z","e":"2026-07-16T09:00:00.000Z","l":"LPKP goes Kaiku (Leirisuora)","g":["aikuiset","vaeltajat"]},{"a":"Iltapala","s":"2026-07-16T17:30:00.000Z","e":"2026-07-16T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Hiljaisuus","s":"2026-07-16T20:30:00.000Z","e":"2026-07-16T20:45:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Perinnelaakso avoinna kaikille","s":"2026-07-17T06:00:00.000Z","e":"2026-07-17T09:00:00.000Z","l":"Perinnelaakso","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Taitolaakso avoinna kaikille","s":"2026-07-17T10:30:00.000Z","e":"2026-07-17T13:30:00.000Z","l":"Taitolaakso","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Päättäjäiset","s":"2026-07-17T15:00:00.000Z","e":"2026-07-17T17:30:00.000Z","l":"Päälava","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Iltapala","s":"2026-07-17T17:30:00.000Z","e":"2026-07-17T19:00:00.000Z","l":"Ruokala","g":[]},{"a":"Lauluilta","s":"2026-07-17T19:00:00.000Z","e":"2026-07-17T20:00:00.000Z","l":"Raffun lava","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Hiljaisuus","s":"2026-07-17T20:30:00.000Z","e":"2026-07-17T20:45:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Purkaminen ja pakkaaminen","s":"2026-07-18T06:00:00.000Z","e":"2026-07-18T09:00:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]},{"a":"Poistuminen","s":"2026-07-18T10:30:00.000Z","e":"2026-07-18T13:30:00.000Z","l":"","g":["aikuiset","samoajat","suset","tarpojat","vaeltajat"]}];
+let SCHED = SCHED_SNAP;
+
+function categorize(act){
+  const s = (act||'').toLowerCase(), has = w => s.includes(w);
+  if (has('aamupala')||has('herätys')) return ['var(--kulta)','🥣'];
+  if (has('lounas')) return ['var(--kulta)','🍽️'];
+  if (has('päivällinen')) return ['var(--kulta)','🍲'];
+  if (has('iltapala')||has('välipala')) return ['var(--kulta)','🌃'];
+  if (has('hiljaisuus')) return ['#bcae93','🌙'];
+  if (has('haikki')) return ['var(--metsa)','🥾'];
+  if (has('uinti')) return ['var(--sininen)','🏊'];
+  if (has('laakso')||has('rakentam')||has('majoit')) return ['var(--metsa)','🌲'];
+  if (has('jumalanpalvelus')||has('hartaus')||has('messu')) return ['var(--meri)','⛪'];
+  if (has('bileet')||has('disko')) return ['var(--magenta)','🎉'];
+  if (has('avajaiset')||has('päättäjäiset')||has('keskiäiset')) return ['var(--magenta)','🎊'];
+  if (has('savuilta')||has('nuotio')||has('laulu')||has('ilta')) return ['var(--laventeli)','🎶'];
+  if (has('vierailu')) return ['var(--laventeli)','🎪'];
+  if (has('saapum')||has('poistum')||has('purkam')||has('pakkaam')) return ['var(--meri)','🎒'];
+  if (has('koulutus')||has('paja')||has('visa')) return ['var(--rusko)','🎨'];
+  return ['var(--oranssi)','📍'];
+}
+function renderSchedule(){
+  const today = helParts(Date.now()).date;
+  const dObj = new Date(new Date().toLocaleString('en-US',{timeZone:TZ}));
+  document.getElementById('schedDay').textContent =
+    `${WD[dObj.getDay()].replace('na',' ')}${dObj.getDate()}.${dObj.getMonth()+1}.`;
+
+  const events = SCHED
+    .filter(e => helParts(e.s).date === today)
+    .sort((a,b) => a.s.localeCompare(b.s));
+
+  const list = document.getElementById('schedList');
+  if (!events.length){
+    list.innerHTML = '<div class="muted">Tälle päivälle ei ole merkittyä yhteisohjelmaa.</div>';
+    return;
+  }
+  const now = Date.now();
+  // etsi seuraava alkava
+  let nextIdx = events.findIndex(e => new Date(e.s).getTime() > now);
+  list.innerHTML = events.map((e,i) => {
+    const [accent, emoji] = categorize(e.a);
+    const st = new Date(e.s).getTime(), en = new Date(e.e).getTime();
+    const sHm = helParts(e.s).hm.replace(':','.'), eHm = helParts(e.e).hm.replace(':','.');
+    const ongoing = now >= st && now < en;
+    const done = now >= en;
+    const isNext = i === nextIdx && !ongoing;
+    let cls = 'ev', tag = '';
+    if (ongoing){ cls += ' now'; tag = '<span class="tag">Nyt</span>'; }
+    else if (isNext){ cls += ' next'; tag = '<span class="tag">Seuraava</span>'; }
+    else if (done){ cls += ' past done'; }
+    const loc = e.l ? e.l.replace(/\s*\(.*\)\s*$/,'').trim() : '';
+    return `<div class="${cls}" style="--accent:${accent}">
+      <div class="time">${sHm}${eHm!==sHm?('<br>'+eHm):''}</div>
+      <div class="emoji">${emoji}</div>
+      <div class="body"><div class="t">${e.a.trim()}</div>${loc?`<div class="d">📍 ${loc}</div>`:''}</div>
+      ${tag}
+    </div>`;
+  }).join('');
+}
+// Yritä hakea täysi ohjelma Kaiku-rajapinnasta (jos saavutettavissa)
+async function loadScheduleLive(){
+  const bases = ['https://kaiku2026.fi/api/schedules?limit=1000&depth=0&sort=startTime'];
+  for (const url of bases){
+    try{
+      const r = await fetch(url, { headers:{ Accept:'application/json' }});
+      if (!r.ok) continue;
+      const j = await r.json();
+      const docs = j.docs || j;
+      if (Array.isArray(docs) && docs.length){
+        // vain koko leirin yhteiset (ei alaleiri-/sivukohtaisia)
+        SCHED = docs
+          .filter(it => (!it.subCamps || !it.subCamps.length) && (!it.pages || !it.pages.length))
+          .map(it => ({ a: it.activity, s: it.startTime, e: it.endTime, l: it.location||'' }));
+        renderSchedule();
+        return;
+      }
+    }catch(e){ /* CORS tms. → käytä upotettua */ }
+  }
+}
+
+/* ============ UUTISET (Kaiku 2026 -sovellus) ============ */
+const NEWS_SNAP = [{"title":"Päivän ruokalista, erityisruokavaliot & allergeenit","author":"Huugo Wahalahti","date":"2026-07-10T15:35:00+02:00","url":"https://kaiku2026.coregoapp.com/paauutiset/i/97300302/paivan-ruokalista-erityisruokavaliot-allergeenit","thumb":"https://cmsphoto.ww-cdn.com/resizeapi/eaa721ed2eaa02a218a8c9e13a543ba5e60bdfaa/314/196/","summary":"PÄIVÄLLINEN, PERJANTAI 10.7."},{"title":"Kaiku NYT -feed","author":"Sampo Syrjämäki","date":"2026-07-10T15:31:00+02:00","url":"https://kaiku2026.coregoapp.com/paauutiset/i/97300247/kaiku-nyt-feed","thumb":"https://cmsphoto.ww-cdn.com/resizeapi/89c1c1b1ac0de3f66a9cf9845f23d729b9c3e43d/314/196/","summary":"Oletko vielä tarkistanut Kaikun NYT-feediä? Kaiku NYT-feedistä löydät ajankohtaisia ja uusimpia uutisia leiriin liittyen! Kaiku NYT löytyy etusivun alareunasta ja sinne päivitetään keskeisiä uutisia esimerkiksi aukioloajoista ja leirivinkeistä!"},{"title":"Päivitäthän leirisovelluksen!","author":"Sampo Syrjämäki","date":"2026-07-10T10:43:00+02:00","url":"https://kaiku2026.coregoapp.com/paauutiset/i/97297417/article-90","thumb":"https://cmsphoto.ww-cdn.com/resizeapi/85178be731fb9683283e5261835ef6c9f176de91/314/196/","summary":"Jotta saat uusimmat leirin tiedot käyttöösi, päivitäthän sovelluksen sovelluskaupasta & varmistat, että sinulla on päällä automaattiset päivitykset Kaiku 2026 -sovellukselle. Tiedotteet ja Kaiku NYT -feed päivittyvät ilman sovelluksen päivitystä, mutta esimerkiksi etusivun rakenteeseen on tullut muutoksia."},{"title":"Muutoksia avajaisten aikataulussa","author":"Huugo Wahalahti","date":"2026-07-10T08:37:00+02:00","url":"https://kaiku2026.coregoapp.com/paauutiset/i/97296447/poikkeava-aikataulu-avajaisten-suhteen","thumb":"https://cmsphoto.ww-cdn.com/resizeapi/142b3b41fbb2c5e000cbb5c04a04a8be94cf326c/314/196/","summary":"Kuva: Taneli Kotro / Pääkaupunkiseudun Partiolaiset Avajaisten aikatauluun on tullut muutoksia. Uusi alkamisaika on klo 19.00"},{"title":"Tervetuloa Kaiku-sovellukseen!","author":"Sampo Syrjämäki","date":"2026-06-02T17:28:00+02:00","url":"https://kaiku2026.coregoapp.com/paauutiset/i/96819317/tervetuloa-kaiku-sovellukseen","thumb":"https://cmsphoto.ww-cdn.com/resizeapi/25e47db32f0ccf20e22ffac88bc3b51c2193a57b/314/196/","summary":"Kaiku-sovellus on julkaistu ja tällä hetkellä kehitysvaiheessa!"}];
+const NEWS_APP = '4554399', NEWS_SECTION = '78074354'; // Pääuutiset-osio
+
+function relTime(iso){
+  const p = helParts(iso), pn = helParts(Date.now());
+  if (p.date === pn.date) return 'Tänään klo ' + p.hm.replace(':','.');
+  const d = new Date(iso.slice(0,10)+'T00:00');
+  return `${d.getDate()}.${d.getMonth()+1}. klo ${p.hm.replace(':','.')}`;
+}
+function renderNews(list, live){
+  const st = document.getElementById('newsStatus');
+  st.className = live ? 'sub' : 'sub live-off';
+  st.innerHTML = `<span class="dot"></span>${live ? 'Live' : 'Tallennettu'}`;
+  const track = document.getElementById('newsTrack');
+  track.innerHTML = list.map(a => `
+    <a class="art" href="${a.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+      ${a.thumb ? `<div class="thumb"><img src="${a.thumb}" alt="" loading="lazy"></div>` : ''}
+      <div class="meta">
+        <div class="kick">${a.author||'Kaiku 2026'} · ${relTime(a.date)}</div>
+        <div class="at">${a.title||''}</div>
+        <div class="ax">${(a.summary||a.excerpt||'').trim()}</div>
+      </div>
+    </a>`).join('');
+  setupAutoScroll();
+}
+async function loadNews(){
+  // Pääuutiset-osion sisältö suoraan Kaiku-sovelluksen (GoodBarber) rajapinnasta.
+  try{
+    const r = await fetch(`https://api.ww-api.com/front/get_items/${NEWS_APP}/${NEWS_SECTION}/`, {
+      headers:{ Accept:'application/json' }
+    });
+    if (r.ok){
+      const j = await r.json();
+      const arr = j.items || j[NEWS_SECTION] || [];
+      if (Array.isArray(arr) && arr.length){
+        const strip = h => (h||'').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+        const list = arr.map(a => ({
+          title:a.title, author:a.author, date:a.date, url:a.url,
+          thumb:a.thumbnail || a.smallThumbnail || a.largeThumbnail || '',
+          summary: a.summary || strip(a.content).slice(0,180)
+        }));
+        renderNews(list, true);
+        return;
+      }
+    }
+  }catch(e){ /* CORS/tyhjä → varmuuskopio */ }
+  renderNews(NEWS_SNAP, false);
+}
+
+/* ---- pystysuora auto-scroll vain jos sisältö ei mahdu ---- */
+let scrollTimer = null;
+function setupAutoScroll(){
+  if (scrollTimer) { clearInterval(scrollTimer); scrollTimer = null; }
+  const scroller = document.querySelector('.news .scroller');
+  const track = document.getElementById('newsTrack');
+  if (!scroller || !track) return;
+  let y = 0, dir = 1, hold = 90;
+  track.style.transform = 'translateY(0)';
+  scrollTimer = setInterval(() => {
+    // mittaa ylivuoto joka tikillä → fontin/kuvien latautuminen ei voi jättää näkymää väärään kohtaan
+    const overflow = track.scrollHeight - scroller.clientHeight;
+    if (overflow <= 8){ if (y !== 0){ y = 0; track.style.transform = 'translateY(0)'; } return; }
+    if (hold > 0){ hold--; return; }
+    y += dir * 0.4;
+    if (y >= overflow){ y = overflow; dir = -1; hold = 90; }
+    if (y <= 0){ y = 0; dir = 1; hold = 90; }
+    track.style.transform = `translateY(${-y}px)`;
+  }, 40);
+}
+
+/* ============ TYÖVUOROT (Operaatiokeskuksen työvuorolista.xlsx) ============ */
+const WORKSHIFTS = {"2026-07-10":[{"t":"07:00","s1":"Anniina","s2":"Sampo"},{"t":"12:00","s1":"Eveliina","s2":"Jenni"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"17:00","s1":"Sakari","s2":"Huugo"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-11":[{"t":"07:00","s1":"Jenni","s2":"Huugo"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"12:00","s1":"Anniina","s2":"Eveliina"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"17:00","s1":"Sampo","s2":"Sakari"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-12":[{"t":"07:00","s1":"Eveliina","s2":"Jenni"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"12:30","s1":"Anniina","s2":"Sakari"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"18:00","s1":"Huugo","s2":"Sampo"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-13":[{"t":"07:00","s1":"Eveliina","s2":"Jenni"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"12:30","s1":"Anniina","s2":"Sampo"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"18:00","s1":"Sakari","s2":"Huugo"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-14":[{"t":"07:00","s1":"Sampo","s2":"Huugo"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"15:30","s1":"Anniina","s2":"Sakari"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-15":[{"t":"07:00","s1":"Anniina","s2":"Huugo"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"15:30","s1":"Sakari","s2":"Sampo"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-16":[{"t":"07:00","s1":"Anniina","s2":"Sampo"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"08:30","s2":"Sakari"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"15:30","s1":"Huugo"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"18:00","s2":"Sampo"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-17":[{"t":"07:00","s1":"Sampo","s2":"Huugo"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"15:30","s1":"Sakari","s2":"Anniina"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"},{"t":"20:00","y":"Aamuraportin valmistelu"}],"2026-07-18":[{"t":"07:00","s1":"Huugo","s2":"Anniina"},{"t":"08:00","y":"Aamuraportin tarkistus"},{"t":"09:30","y":"LTMK kokous, opkemestari"},{"t":"12:30","s1":"Sampo","s2":"Sakari"},{"t":"16:00","y":"Operaatiokeskuksen päiväpalaveri"}]};
+function prevDayKey(key){
+  const d = new Date(key+'T12:00:00'); d.setDate(d.getDate()-1);
+  return d.toISOString().slice(0,10);
+}
+function carryShift(entries, until){ // until = "HH:MM" tai null = koko päivä
+  let s1=null, s2=null, y=null, next=null;
+  for (const e of entries){
+    if (until===null || e.t <= until){ if('s1' in e)s1=e.s1; if('s2' in e)s2=e.s2; if('y' in e)y=e.y; }
+    else if (!next && ('s1' in e || 's2' in e)){ next=e; }
+  }
+  return { s1, s2, y, next };
+}
+function renderShift(){
+  const el = document.getElementById('shiftBody');
+  const key = helParts(Date.now()).date;
+  const dObj = new Date(new Date().toLocaleString('en-US',{timeZone:TZ}));
+  document.getElementById('shiftDay').textContent = `${dObj.getDate()}.${dObj.getMonth()+1}.`;
+  const entries = WORKSHIFTS[key];
+  if (!entries){ el.innerHTML = '<div class="muted">Leirin ulkopuolinen päivä — ei työvuoroja.</div>'; return; }
+  const now = helParts(Date.now()).hm;
+  const cur = carryShift(entries, now);
+  // ennen aamuvuoroa → edellisillan vuoro jatkuu yön yli
+  if (cur.s1===null && cur.s2===null){
+    const p = WORKSHIFTS[prevDayKey(key)];
+    if (p){ const pc = carryShift(p, null); cur.s1 = pc.s1; cur.s2 = pc.s2; }
+  }
+  const nameCard = (role, name, accent) => name
+    ? `<div class="shiftcard" style="--accent:${accent}"><div class="role">${role}</div><div class="name">${name}</div></div>`
+    : `<div class="shiftcard empty" style="--accent:#c4bfb2"><div class="role">${role}</div><div class="name">— ei merkintää —</div></div>`;
+  let html = `<div class="shiftnow">${nameCard('1. vuoro', cur.s1, 'var(--oranssi)')}${nameCard('2. vuoro', cur.s2, 'var(--meri)')}</div>`;
+  if (cur.y) html += `<div class="shifttask"><span class="ic">📌</span><div>Meneillään: <b>${cur.y}</b></div></div>`;
+  if (cur.next){
+    const nn = [cur.next.s1, cur.next.s2].filter(Boolean).join(' & ');
+    html += `<div class="shiftnext">🔁 Seuraava vuoronvaihto <span class="tg">klo ${cur.next.t.replace(':','.')}</span>${nn?` — ${nn}`:''}</div>`;
+  }
+  el.innerHTML = html;
+}
+
+/* ============ TIKETIT-POPUP (SharePoint Opke/Ospa — vain "Uusi") ============ */
+const SP_SITE = 'https://partio.sharepoint.com/sites/Tiketin';
+const SP_LIST = 'OpkeOspa';
+const SP_PAGE = 'https://partio.sharepoint.com/sites/Tiketin/Lists/OpkeOspa/AllItems.aspx?viewid=6ab91000-1635-4e47-b2a8-cb248f338cff';
+const ticketModal = document.getElementById('ticketModal');
+let ticketTimer = null;
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function stripHtml(h){ return (h||'').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
+function fmtDate(iso){ if(!iso) return ''; const p=helParts(iso); const d=new Date(iso.slice(0,10)+'T00:00'); return `${d.getDate()}.${d.getMonth()+1}. klo ${p.hm.replace(':','.')}`; }
+
+function openTicketModal(){ ticketModal.hidden = false; loadTickets(); if(!ticketTimer) ticketTimer = setInterval(loadTickets, 60000); }
+function closeTicketModal(){ ticketModal.hidden = true; if(ticketTimer){ clearInterval(ticketTimer); ticketTimer=null; } }
+function spLogin(){ window.open(SP_PAGE, 'sp_login', 'width=1024,height=760,noopener=no'); }
+function setBadge(n){ const b=document.getElementById('ticketBadge'); if(n>0){ b.textContent=n; b.hidden=false; } else b.hidden=true; }
+
+document.getElementById('openTickets').addEventListener('click', openTicketModal);
+document.getElementById('ticketClose').addEventListener('click', closeTicketModal);
+document.getElementById('ticketRefresh').addEventListener('click', loadTickets);
+document.getElementById('ticketLogin').addEventListener('click', spLogin);
+ticketModal.addEventListener('click', e => { if(e.target===ticketModal) closeTicketModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape' && !ticketModal.hidden) closeTicketModal();
+  else if ((e.key==='t'||e.key==='T') && ticketModal.hidden) openTicketModal();
+});
+
+const DESC_KEYS = ['Kuvaus','Description','Body','Selite','Viesti','Comments','Lisatiedot','Lisätiedot','Tiketti','Ongelma'];
+function ticketDesc(it){
+  for (const k of DESC_KEYS) if (it[k]) return stripHtml(it[k]).slice(0,320);
+  return '';
+}
+function renderTickets(items){
+  const body = document.getElementById('ticketBody');
+  if (!items.length){
+    body.innerHTML = `<div class="modal-empty"><div class="big">🎉</div><div class="t">Ei uusia tikettejä</div><div class="muted">Kaikki uudet tiketit on käsitelty.</div></div>`;
+    return;
+  }
+  body.innerHTML = items.map(it => {
+    const id = it.Id||it.ID||'';
+    const title = esc(it.Title||it.LinkTitle||it.Otsikko||'(nimetön tiketti)');
+    const desc = ticketDesc(it);
+    const created = fmtDate(it.Created);
+    const cat = it.Category||it.Luokka||it.Aihe||'';
+    return `<div class="tk">
+      <div class="tk-top"><span class="tk-status">Uusi</span><span class="tk-id">#${esc(id)}</span></div>
+      <div class="tk-title">${title}</div>
+      ${desc?`<div class="tk-desc">${esc(desc)}</div>`:''}
+      <div class="tk-meta">${created?`<span>🕓 ${created}</span>`:''}${cat?`<span>🏷️ ${esc(cat)}</span>`:''}</div>
+    </div>`;
+  }).join('');
+}
+function ticketAuthNote(){
+  return `<div class="modal-note"><div class="big">🔒</div>
+    <div class="t">Kirjaudu nähdäksesi uudet tiketit</div>
+    <div class="d">Avaa SharePoint-kirjautuminen alla olevasta painikkeesta ja kirjaudu partio-tunnuksilla — sen jälkeen paina <b>↻ Päivitä</b>.
+    Jos tiketit eivät silti lataudu, selaimen tietoturva (CORS) estää SharePointin lukemisen tältä sivulta; avaa lista silloin suoraan SharePointissa.</div>
+    <button class="nbtn" onclick="spLogin()">🔑 Kirjaudu SharePointiin</button></div>`;
+}
+async function loadTickets(){
+  const status = document.getElementById('ticketStatus');
+  status.innerHTML = '<span class="spin"></span> Päivitetään…';
+  try{
+    // Vain "Uusi"-sarake: suodatetaan tilakentän arvolla asiakaspäässä (kentän sisäinen nimi voi vaihdella).
+    const url = `${SP_SITE}/_api/web/lists/getByTitle('${SP_LIST}')/items?$top=200&$orderby=Created desc`;
+    const r = await fetch(url, { credentials:'include', headers:{ Accept:'application/json;odata=nometadata' } });
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    const all = j.value || [];
+    const items = all.filter(it => Object.values(it).some(v => typeof v==='string' && v.trim().toLowerCase()==='uusi'));
+    renderTickets(items);
+    setBadge(items.length);
+    status.textContent = 'Päivitetty ' + helParts(Date.now()).hm.replace(':','.');
+  }catch(e){
+    document.getElementById('ticketBody').innerHTML = ticketAuthNote();
+    status.textContent = 'Kirjautuminen tarvitaan';
+  }
+}
+
+/* ============ KÄYNNISTYS ============ */
+tickClock(); tickTimer(); renderSchedule(); renderShift();
+setInterval(tickClock, 1000);
+setInterval(tickTimer, 1000);
+setInterval(renderSchedule, 30000);       // päivitä nyt/seuraava-merkinnät
+setInterval(renderShift, 30000);          // päivitä työvuorossa-nyt
+loadWeather();      setInterval(loadWeather, 10*60*1000);   // 10 min
+loadNews();         setInterval(loadNews, 5*60*1000);       // 5 min
+loadScheduleLive(); setInterval(loadScheduleLive, 15*60*1000);
+</script>
+</body>
+</html>
