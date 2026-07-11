@@ -25,28 +25,76 @@ self-contained `index.html` (HTML + CSS + vanilla JS, no build step) sized for a
 | Pääuutiset | Kaiku 2026 app content API (Corego / GoodBarber) |
 | Päivän ohjelma | Leirilukkari camp schedule + embedded snapshot |
 | Työvuorot | `Operaatiokeskuksen työvuorolista.xlsx` (embedded) |
-| Tiketit | SharePoint list *Opke/Ospa* (REST, status = "Uusi") |
+| Tiketit | SharePoint list *Opke/Ospa* (status = "Uusi") via the local `ticket-server` |
 
 Each source has an embedded fallback so the dashboard keeps working offline.
 
-### SharePoint tickets note
+## Tickets — the `ticket-server`
 
-The tickets popup calls the SharePoint REST API for items whose status is **Uusi**.
-Because SharePoint returns `Access-Control-Allow-Origin: *` **without**
-`Access-Control-Allow-Credentials`, a browser will not send the login cookie
-cross-origin, so a standalone page cannot read the list directly. To make it live,
-serve this page **same-origin on SharePoint**, or put a small proxy / Microsoft Graph
-app-token in front of it. Until then the popup shows a "Kirjaudu" prompt.
+A browser cannot read the SharePoint list directly: SharePoint returns
+`Access-Control-Allow-Origin: *` **without** `Access-Control-Allow-Credentials`, so it
+won't accept the login cookie cross-origin. The [`ticket-server/`](ticket-server/)
+folder solves this with a small Node backend:
+
+1. On start it opens a **browser window to the Tiketin site — you log in once** with your
+   partio account (the session is saved to `ticket-server/.auth`, so you don't log in
+   again next time).
+2. It then reads the **"Uusi"** tickets from the *Opke/Ospa* list every **60 s** by
+   calling the SharePoint REST API from inside the logged-in page (same-origin → cookies
+   work).
+3. It serves them CORS-open at `http://localhost:8137/api/tickets`, plus a
+   Kaiku-styled board at `http://localhost:8137/`.
+
+The dashboard's 🎫 **Tiketit** popup reads that endpoint (override with
+`?ticketApi=http://HOST:8137/api/tickets`). If the server is down, the popup says so; if
+you haven't logged in yet, it says "Kirjaudu tiketti-palvelimen ikkunassa".
+
+```bash
+cd ticket-server
+npm install      # installs Express + Playwright (downloads Chromium once)
+npm start        # opens the login window, then serves on :8137
+```
+
+Never commit `ticket-server/.auth` — it holds your login session (already git-ignored).
 
 ## Run it
 
-Any static file server works, e.g.:
+The dashboard itself is a static file — any file server works:
 
 ```bash
 python3 -m http.server 8133   # then open http://localhost:8133
 ```
 
-On the TV, open `index.html` and go full-screen (F11).
+On the TV, open `index.html` and go full-screen (F11). Run the `ticket-server` alongside
+it (on the same machine) so the Tiketit popup can reach `localhost:8137`.
+
+## Installing Node.js quickly on Windows
+
+The `ticket-server` needs Node.js (v18+). Fastest ways on Windows:
+
+**Option A — winget (built into Windows 10/11), one command in PowerShell:**
+
+```powershell
+winget install OpenJS.NodeJS.LTS
+```
+
+Close and reopen the terminal, then check it worked:
+
+```powershell
+node -v
+npm -v
+```
+
+**Option B — installer:** download the **LTS** `.msi` from <https://nodejs.org/en/download>,
+run it, and keep the default options (this also installs `npm`).
+
+Then run the ticket-server:
+
+```powershell
+cd ticket-server
+npm install
+npm start
+```
 
 ## Visual identity
 

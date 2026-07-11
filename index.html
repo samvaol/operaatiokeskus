@@ -218,8 +218,10 @@ main{
 .tk{background:#fff; border-radius:1rem; box-shadow:var(--shadow); padding:1rem 1.1rem; border-top:.4rem solid var(--punainen);
   display:flex; flex-direction:column; gap:.4rem}
 .tk .tk-top{display:flex; align-items:center; gap:.5rem}
+.tk .tk-top{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
 .tk .tk-status{font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#fff;
   background:var(--punainen); padding:.22rem .6rem; border-radius:999px}
+.tk .tk-flag{font-size:.7rem; font-weight:800; letter-spacing:.03em; color:#fff; background:var(--rusko); padding:.22rem .55rem; border-radius:999px}
 .tk .tk-id{font-size:.8rem; color:#a49f92; font-weight:700; margin-left:auto}
 .tk .tk-title{font-weight:800; font-size:1.2rem; line-height:1.15; color:var(--ink)}
 .tk .tk-desc{font-size:.95rem; color:#6f6b61; line-height:1.35;
@@ -751,15 +753,16 @@ function renderShift(){
   el.innerHTML = html;
 }
 
-/* ============ TIKETIT-POPUP (SharePoint Opke/Ospa — vain "Uusi") ============ */
-const SP_SITE = 'https://partio.sharepoint.com/sites/Tiketin';
-const SP_LIST = 'OpkeOspa';
+/* ============ TIKETIT-POPUP (tiketti-palvelimelta, vain "Uusi") ============ */
+// Erillinen node-palvelin (ticket-server) lukee Uusi-tiketit SharePointista ja
+// tarjoaa ne CORS-avoimena. Osoitteen voi ohittaa ?ticketApi=... -parametrilla.
+const TICKET_API = new URLSearchParams(location.search).get('ticketApi') || 'http://localhost:8137/api/tickets';
 const SP_PAGE = 'https://partio.sharepoint.com/sites/Tiketin/Lists/OpkeOspa/AllItems.aspx?viewid=6ab91000-1635-4e47-b2a8-cb248f338cff';
 const ticketModal = document.getElementById('ticketModal');
 let ticketTimer = null;
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function stripHtml(h){ return (h||'').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
-function fmtDate(iso){ if(!iso) return ''; const p=helParts(iso); const d=new Date(iso.slice(0,10)+'T00:00'); return `${d.getDate()}.${d.getMonth()+1}. klo ${p.hm.replace(':','.')}`; }
+function fmtStamp(iso){ if(!iso) return ''; const d=new Date(iso); return `${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`; }
+function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso); return `${d.getDate()}.${d.getMonth()+1}. klo ${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`; }
 
 function openTicketModal(){ ticketModal.hidden = false; loadTickets(); if(!ticketTimer) ticketTimer = setInterval(loadTickets, 60000); }
 function closeTicketModal(){ ticketModal.hidden = true; if(ticketTimer){ clearInterval(ticketTimer); ticketTimer=null; } }
@@ -776,55 +779,61 @@ document.addEventListener('keydown', e => {
   else if ((e.key==='t'||e.key==='T') && ticketModal.hidden) openTicketModal();
 });
 
-const DESC_KEYS = ['Kuvaus','Description','Body','Selite','Viesti','Comments','Lisatiedot','Lisätiedot','Tiketti','Ongelma'];
-function ticketDesc(it){
-  for (const k of DESC_KEYS) if (it[k]) return stripHtml(it[k]).slice(0,320);
-  return '';
-}
 function renderTickets(items){
   const body = document.getElementById('ticketBody');
   if (!items.length){
     body.innerHTML = `<div class="modal-empty"><div class="big">🎉</div><div class="t">Ei uusia tikettejä</div><div class="muted">Kaikki uudet tiketit on käsitelty.</div></div>`;
     return;
   }
-  body.innerHTML = items.map(it => {
-    const id = it.Id||it.ID||'';
-    const title = esc(it.Title||it.LinkTitle||it.Otsikko||'(nimetön tiketti)');
-    const desc = ticketDesc(it);
-    const created = fmtDate(it.Created);
-    const cat = it.Category||it.Luokka||it.Aihe||'';
+  body.innerHTML = items.map(t => {
+    const meta = [
+      t.topic ? `🏷️ ${esc(t.topic)}` : '',
+      t.location ? `📍 ${esc(t.location)}` : '',
+      t.reporter ? `👤 ${esc(t.reporter)}` : '',
+      t.created ? `🕓 ${fmtDate(t.created)}` : ''
+    ].filter(Boolean).map(m=>`<span>${m}</span>`).join('');
     return `<div class="tk">
-      <div class="tk-top"><span class="tk-status">Uusi</span><span class="tk-id">#${esc(id)}</span></div>
-      <div class="tk-title">${title}</div>
-      ${desc?`<div class="tk-desc">${esc(desc)}</div>`:''}
-      <div class="tk-meta">${created?`<span>🕓 ${created}</span>`:''}${cat?`<span>🏷️ ${esc(cat)}</span>`:''}</div>
+      <div class="tk-top"><span class="tk-status">Uusi</span>${t.safety?'<span class="tk-flag">⚠️ Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
+      <div class="tk-title">${esc(t.title||'(nimetön tiketti)')}</div>
+      ${t.desc?`<div class="tk-desc">${esc(t.desc)}</div>`:''}
+      <div class="tk-meta">${meta}</div>
     </div>`;
   }).join('');
 }
-function ticketAuthNote(){
+function ticketLoginNote(){
   return `<div class="modal-note"><div class="big">🔒</div>
-    <div class="t">Kirjaudu nähdäksesi uudet tiketit</div>
-    <div class="d">Avaa SharePoint-kirjautuminen alla olevasta painikkeesta ja kirjaudu partio-tunnuksilla — sen jälkeen paina <b>↻ Päivitä</b>.
-    Jos tiketit eivät silti lataudu, selaimen tietoturva (CORS) estää SharePointin lukemisen tältä sivulta; avaa lista silloin suoraan SharePointissa.</div>
-    <button class="nbtn" onclick="spLogin()">🔑 Kirjaudu SharePointiin</button></div>`;
+    <div class="t">Kirjaudu tiketti-palvelimen ikkunassa</div>
+    <div class="d">Tiketti-palvelin avasi selainikkunan Tiketin-sivustolle. Kirjaudu siinä partio-tunnuksilla — uudet tiketit ilmestyvät tähän automaattisesti minuutin sisällä.</div>
+    <button class="nbtn" onclick="spLogin()">🔑 Avaa kirjautuminen</button></div>`;
+}
+function ticketServerNote(){
+  return `<div class="modal-note"><div class="big">🔌</div>
+    <div class="t">Tiketti-palvelinta ei tavoiteta</div>
+    <div class="d">Käynnistä palvelin: kansiossa <b>ticket-server</b> aja <b>npm install</b> ja <b>npm start</b>. Palvelin lukee Uusi-tiketit SharePointista ja päivittää ne 60 s välein.</div></div>`;
 }
 async function loadTickets(){
   const status = document.getElementById('ticketStatus');
   status.innerHTML = '<span class="spin"></span> Päivitetään…';
   try{
-    // Vain "Uusi"-sarake: suodatetaan tilakentän arvolla asiakaspäässä (kentän sisäinen nimi voi vaihdella).
-    const url = `${SP_SITE}/_api/web/lists/getByTitle('${SP_LIST}')/items?$top=200&$orderby=Created desc`;
-    const r = await fetch(url, { credentials:'include', headers:{ Accept:'application/json;odata=nometadata' } });
+    const r = await fetch(TICKET_API, { cache:'no-store' });
     if (!r.ok) throw new Error('HTTP '+r.status);
     const j = await r.json();
-    const all = j.value || [];
-    const items = all.filter(it => Object.values(it).some(v => typeof v==='string' && v.trim().toLowerCase()==='uusi'));
-    renderTickets(items);
-    setBadge(items.length);
-    status.textContent = 'Päivitetty ' + helParts(Date.now()).hm.replace(':','.');
+    if (j.status === 'ok'){
+      renderTickets(j.tickets || []);
+      setBadge((j.tickets || []).length);
+      status.textContent = 'Päivitetty ' + (j.updatedAt ? fmtStamp(j.updatedAt) : fmtStamp(new Date().toISOString()));
+    } else if (j.status === 'awaiting-login'){
+      document.getElementById('ticketBody').innerHTML = ticketLoginNote();
+      status.textContent = 'Odottaa kirjautumista';
+      setBadge(0);
+    } else {
+      document.getElementById('ticketBody').innerHTML = `<div class="modal-note"><div class="big"><span class="spin"></span></div><div class="t">Käynnistetään…</div></div>`;
+      status.textContent = 'Käynnistetään';
+    }
   }catch(e){
-    document.getElementById('ticketBody').innerHTML = ticketAuthNote();
-    status.textContent = 'Kirjautuminen tarvitaan';
+    document.getElementById('ticketBody').innerHTML = ticketServerNote();
+    status.textContent = 'Palvelin ei vastaa';
+    setBadge(0);
   }
 }
 

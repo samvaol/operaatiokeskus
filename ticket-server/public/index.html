@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#005448" />
+<title>Uudet tiketit · Opke/Ospa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --metsa:#005448; --meri:#00445E; --rusko:#542337; --savu:#F9F3E6;
+  --punainen:#FF633A; --oranssi:#FF8940; --kulta:#FFAE40;
+  --ink:#2a2a26;
+  --shadow:0 1px 2px rgba(0,40,55,.05), 0 .7rem 1.8rem rgba(0,40,55,.09);
+  --head:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:clamp(11px, calc(.42vw + .55vh), 22px)}
+body{font-family:var(--head); background:var(--savu); color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased}
+.app{max-width:1400px; margin:0 auto; padding:1.4rem 1.6rem 3rem}
+
+/* header */
+header{position:relative; background:var(--metsa); color:var(--savu); border-radius:1.2rem; overflow:hidden;
+  padding:1.3rem 1.6rem 1.5rem; box-shadow:var(--shadow)}
+header::after{content:""; position:absolute; left:0; right:0; bottom:0; height:.3rem;
+  background:linear-gradient(90deg,var(--punainen) 0%,var(--oranssi) 42%,var(--kulta) 100%)}
+.htop{display:flex; align-items:center; gap:1rem}
+.brandtag{font-size:.82rem; letter-spacing:.3em; text-transform:uppercase; color:var(--kulta); font-weight:700}
+h1{font-size:2.3rem; font-weight:800; line-height:1; letter-spacing:-.015em; margin-top:.3rem}
+h1 .n{color:var(--kulta)}
+.hstatus{margin-left:auto; text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem}
+.live{display:flex; align-items:center; gap:.45rem; font-size:.78rem; font-weight:800; letter-spacing:.22em; color:var(--kulta)}
+.eq{display:inline-flex; align-items:flex-end; gap:.16rem; height:1.05rem}
+.eq i{width:.22rem; border-radius:1rem; background:linear-gradient(var(--kulta),var(--oranssi)); animation:eq 1.1s ease-in-out infinite}
+.eq i:nth-child(1){height:.4rem; animation-delay:-.9s; background:linear-gradient(var(--kulta),var(--punainen))}
+.eq i:nth-child(2){height:.9rem; animation-delay:-.5s}
+.eq i:nth-child(3){height:.6rem; animation-delay:-.2s; background:linear-gradient(var(--oranssi),var(--punainen))}
+.eq i:nth-child(4){height:1rem; animation-delay:-.7s}
+@keyframes eq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.updated{font-size:.9rem; color:rgba(249,243,230,.82); font-weight:500}
+@media (prefers-reduced-motion:reduce){.eq i{animation:none}}
+
+/* grid of tickets */
+.grid{margin-top:1.4rem; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1.1rem; align-content:start}
+.tk{background:#fff; border-radius:1rem; box-shadow:var(--shadow); padding:1.05rem 1.15rem; border-top:.34rem solid var(--punainen);
+  display:flex; flex-direction:column; gap:.45rem; animation:pop .25s ease both}
+@keyframes pop{from{opacity:0; transform:translateY(.6rem)}to{opacity:1; transform:none}}
+.tk-top{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
+.tk-status{font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#fff; background:var(--punainen); padding:.24rem .62rem; border-radius:999px}
+.tk-flag{font-size:.7rem; font-weight:800; letter-spacing:.04em; color:#fff; background:var(--rusko); padding:.24rem .55rem; border-radius:999px}
+.tk-id{font-size:.82rem; color:#a49f92; font-weight:700; margin-left:auto}
+.tk-title{font-weight:800; font-size:1.25rem; line-height:1.15; color:var(--ink)}
+.tk-desc{font-size:.96rem; color:#6f6b61; line-height:1.35; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden}
+.tk-meta{margin-top:auto; padding-top:.3rem; font-size:.84rem; color:#8f8a7e; font-weight:600; display:flex; gap:.9rem; flex-wrap:wrap}
+
+/* states */
+.state{grid-column:1/-1; text-align:center; padding:4rem 1rem; color:#6f6b61}
+.state .big{font-size:4rem; margin-bottom:.6rem}
+.state .t{font-weight:800; font-size:1.9rem; color:var(--metsa)}
+.state.await .t{color:var(--meri)}
+.state .d{max-width:44rem; margin:.6rem auto 0; line-height:1.45; font-size:1.05rem}
+.state .btn{display:inline-block; margin-top:1.1rem; background:var(--metsa); color:var(--savu); text-decoration:none; font-weight:800; font-size:1.05rem; padding:.8rem 1.6rem; border-radius:999px}
+.spin{display:inline-block; width:1rem; height:1rem; border:.2rem solid #d8cfba; border-top-color:var(--oranssi); border-radius:50%; animation:sp .8s linear infinite; vertical-align:-.15rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="htop">
+      <div>
+        <div class="brandtag">Kaiku 2026 · Operaatiokeskus</div>
+        <h1>Uudet tiketit <span class="n">· Opke/Ospa</span></h1>
+      </div>
+      <div class="hstatus">
+        <div class="live"><span class="eq"><i></i><i></i><i></i><i></i></span> LIVE · 60 s</div>
+        <div class="updated" id="updated"><span class="spin"></span> Yhdistetään…</div>
+      </div>
+    </div>
+  </header>
+  <div class="grid" id="grid">
+    <div class="state"><div class="big"><span class="spin"></span></div><div class="t">Ladataan…</div></div>
+  </div>
+</div>
+
+<script>
+const API = '/api/tickets';
+const SP_URL = 'https://partio.sharepoint.com/sites/Tiketin/Lists/OpkeOspa/AllItems.aspx?viewid=6ab91000-1635-4e47-b2a8-cb248f338cff';
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function fmt(iso){ if(!iso) return ''; const d=new Date(iso); return `${d.getDate()}.${d.getMonth()+1}. klo ${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`; }
+
+function ticketCard(t){
+  const meta = [
+    t.topic ? `🏷️ ${esc(t.topic)}` : '',
+    t.location ? `📍 ${esc(t.location)}` : '',
+    t.reporter ? `👤 ${esc(t.reporter)}` : '',
+    t.created ? `🕓 ${fmt(t.created)}` : ''
+  ].filter(Boolean).map(m=>`<span>${m}</span>`).join('');
+  return `<div class="tk">
+    <div class="tk-top"><span class="tk-status">Uusi</span>${t.safety?'<span class="tk-flag">⚠️ Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
+    <div class="tk-title">${esc(t.title)}</div>
+    ${t.desc?`<div class="tk-desc">${esc(t.desc)}</div>`:''}
+    <div class="tk-meta">${meta}</div>
+  </div>`;
+}
+function render(data){
+  const grid = document.getElementById('grid');
+  const upd = document.getElementById('updated');
+  if(data.status==='ok'){
+    upd.textContent = 'Päivitetty ' + fmt(data.updatedAt);
+    if(!data.tickets.length){
+      grid.innerHTML = `<div class="state"><div class="big">🎉</div><div class="t">Ei uusia tikettejä</div><div class="d">Kaikki uudet tiketit on käsitelty.</div></div>`;
+    } else {
+      grid.innerHTML = data.tickets.map(ticketCard).join('');
+    }
+  } else if(data.status==='awaiting-login'){
+    upd.textContent = 'Odottaa kirjautumista';
+    grid.innerHTML = `<div class="state await"><div class="big">🔒</div><div class="t">Kirjaudu SharePointiin</div>
+      <div class="d">Palvelin avasi selainikkunan Tiketin-sivustolle. Kirjaudu siinä partio-tunnuksilla — tiketit ilmestyvät tähän automaattisesti minuutin sisällä.</div>
+      <a class="btn" href="${SP_URL}" target="_blank" rel="noopener">Avaa kirjautuminen ↗</a></div>`;
+  } else {
+    upd.textContent = 'Käynnistetään…';
+  }
+}
+async function tick(){
+  try{
+    const r = await fetch(API, {cache:'no-store'});
+    render(await r.json());
+  }catch(e){
+    document.getElementById('updated').textContent = 'Palvelin ei vastaa';
+    document.getElementById('grid').innerHTML = `<div class="state"><div class="big">🔌</div><div class="t">Palvelinta ei tavoiteta</div><div class="d">Käynnistä tiketti-palvelin: <code>npm start</code> kansiossa <code>ticket-server</code>.</div></div>`;
+  }
+}
+tick();
+setInterval(tick, 60000);
+</script>
+</body>
+</html>
