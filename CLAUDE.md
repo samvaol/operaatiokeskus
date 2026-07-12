@@ -40,6 +40,9 @@ ticket-server/
   (usually CORS-blocked → snapshot used).
 - **Työvuorot**: embedded `WORKSHIFTS` object parsed from `Operaatiokeskuksen työvuorolista.xlsx`.
 - **Tiketit**: via the local `ticket-server` (see below), never SharePoint directly.
+- **Osallistujaviestintä**: 3 latest form responses, also via the `ticket-server` (`/api/form`).
+  The server downloads the SharePoint Excel workbook (site `UudenmaanPiirileiri2026`, by
+  sourcedoc GUID) and parses it in-process with a dependency-free zip+OOXML reader.
 - **Konfetti**: `tickTimer` fires `celebrate(pct)` (canvas confetti + toast) on each whole-percent
   advance of the camp progress; `#confetti`/`#celebrateToast` at z 1000/1100.
 
@@ -57,8 +60,19 @@ Every source has an **embedded fallback** so the dashboard never goes blank.
   which tab is open), with a server-owned background page (`requestJsonViaPage`) as fallback.
   Do **not** poll via `page.evaluate` on a user-visible tab — it breaks on SPA nav / tab switch.
 - Serves `GET /api/tickets` (CORS `*`) → `{status:'ok'|'awaiting-login'|'starting', buckets:[…],
-  uusi:[…], count}`. Dashboard's Uusi panel reads `j.uusi`; popup reads `j.buckets`. Override host
-  with `?ticketApi=`.
+  uusi:[…], count}`. Dashboard's Uusi panel reads `j.uusi`; the "Käynnissä olevat operaatiot"
+  panel reuses the same fetch and pulls the `Käsittelyssä operaatiokeskuksessa` bucket; the popup
+  reads `j.buckets`. Override host with `?ticketApi=`.
+- Also serves `GET /api/form` → `{status, entries:[{id,when,who,subject,message,extras}]}` — the
+  **3 latest** rows of the *Osallistujaviestintä* Excel workbook (site `UudenmaanPiirileiri2026`,
+  `GetFileById('<sourcedoc-GUID>')/$value`; the tenant login covers all sites). The `.xlsx` is
+  parsed **in-process, no deps** by `unzip` (central-directory + `zlib.inflateRawSync`) →
+  `parseSheet`/`parseSharedStrings`/`parseStyles`/`extractForm`. Date columns are detected from
+  `styles.xml` (numFmt) and Excel serials converted with UTC getters; columns map to roles by
+  header (`roleOf`). Refreshed every 60 s (live). Dashboard reads it at `/api/form` (override with
+  `?formApi=`, else derived from `?ticketApi=`).
+- Startup is guarded by `if (require.main === module) start()`; `module.exports` exposes the xlsx
+  helpers so they can be unit-tested (`node -e "require('./server.js')…"`) without Playwright.
 - Run: `cd ticket-server && npm install && npm start`. `HEADLESS=1` runs headless (only works
   once `.auth` is warm). Session persists in `ticket-server/.auth` (git-ignored, secret).
 

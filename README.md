@@ -17,7 +17,10 @@ self-contained `index.html` (HTML + CSS + vanilla JS, no build step) sized for a
 - **Päivän ohjelma** — today's whole-camp programme with *nyt* / *seuraava* markers.
 - **Työvuorossa nyt** — who is on shift right now (from the työvuorolista).
 - **Uudet tiketit** — the "Uusi" SharePoint tickets, always on screen, refreshed every 60 s.
+- **Käynnissä olevat operaatiot** — the "Käsittelyssä operaatiokeskuksessa" tickets, refreshed every 60 s.
 - **Pääuutiset** — the latest articles from the Kaiku 2026 app.
+- **Osallistujaviestintä** — the three latest entries from the participant-messaging form
+  (a SharePoint Excel workbook), refreshed live every 60 s via the `ticket-server`.
 - **Tiketit** (🎫 button) — a popup of the full board, **all status columns** grouped.
 
 ## Data sources
@@ -30,6 +33,7 @@ self-contained `index.html` (HTML + CSS + vanilla JS, no build step) sized for a
 | Päivän ohjelma | Leirilukkari camp schedule + embedded snapshot |
 | Työvuorot | `Operaatiokeskuksen työvuorolista.xlsx` (embedded) |
 | Tiketit (kaikki tilat) | SharePoint list *Opke/Ospa*, all statuses, via the local `ticket-server` |
+| Osallistujaviestintä | SharePoint Excel workbook *Osallistujaviestintä.xlsx*, 3 latest rows, via the local `ticket-server` |
 
 Each source has an embedded fallback so the dashboard keeps working offline.
 
@@ -49,6 +53,12 @@ folder solves this with a small Node backend:
    browser tab is open).
 3. It serves them CORS-open at `http://localhost:8137/api/tickets` (`{status, buckets,
    uusi, …}`), plus a Kaiku-styled **all-statuses board** at `http://localhost:8137/`.
+
+It also downloads the **Osallistujaviestintä** Excel workbook (on the
+`UudenmaanPiirileiri2026` site — the same partio login covers the whole tenant), parses it
+in-process (no dependencies — a small zip + OOXML reader), and serves the **three latest
+form responses** at `http://localhost:8137/api/form` (`{status, entries, …}`), refreshed
+every 60 s. Override the workbook with the `FORM_DOC_ID` env var if the file changes.
 
 The dashboard's 🎫 **Tiketit** popup reads that endpoint (override with
 `?ticketApi=http://HOST:8137/api/tickets`). If the server is down, the popup says so; if

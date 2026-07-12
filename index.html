@@ -87,6 +87,8 @@ main{
 .card.news{--accent:var(--punainen)}
 .card.tickets{--accent:var(--punainen)}
 .card.radar{--accent:var(--meri)}
+.card.ops{--accent:var(--metsa)}
+.card.msgform{--accent:var(--magenta)}
 
 /* ===== Uudet tiketit -paneeli ===== */
 .tickets{min-height:0}
@@ -101,6 +103,32 @@ main{
 .utk .u-meta{font-size:.76rem; color:#9a958a; font-weight:600}
 .tickets .allzero{margin:auto; text-align:center; color:var(--metsa); font-weight:800; font-size:1.15rem; padding:1.2rem .5rem}
 .tickets .allzero .big{font-size:2.6rem; display:block; margin-bottom:.3rem}
+
+/* ===== Käynnissä olevat operaatiot ===== */
+.ops{min-height:0}
+.opsbody{display:flex; flex-direction:column; gap:.5rem; overflow:hidden; max-height:15rem}
+.op{background:#eef4f1; border:1px solid #d5e5de; border-left:.32rem solid var(--metsa);
+  border-radius:.6rem; padding:.5rem .65rem; display:flex; flex-direction:column; gap:.2rem}
+.op .o-top{display:flex; align-items:center; gap:.4rem}
+.op .o-id{font-size:.72rem; color:#8aa79c; font-weight:700}
+.op .o-flag{margin-left:auto; font-size:.64rem; font-weight:800; color:#fff; background:var(--rusko); padding:.14rem .42rem; border-radius:999px}
+.op .o-title{font-weight:800; font-size:1rem; line-height:1.15}
+.op .o-meta{font-size:.76rem; color:#7f9a8f; font-weight:600}
+.op-zero{margin:auto; text-align:center; color:var(--metsa); font-weight:800; font-size:1.02rem; padding:.8rem .5rem}
+
+/* ===== Osallistujaviestintä ===== */
+.msgform{min-height:0}
+.formbody{display:flex; flex-direction:column; gap:.55rem; overflow:hidden}
+.fmsg{background:#fff; border:1px solid #f0e0e6; border-left:.32rem solid var(--magenta);
+  border-radius:.7rem; padding:.55rem .7rem; display:flex; flex-direction:column; gap:.22rem}
+.fmsg .f-top{display:flex; align-items:baseline; gap:.5rem}
+.fmsg .f-who{font-weight:800; font-size:1rem; color:var(--rusko)}
+.fmsg .f-when{margin-left:auto; font-size:.72rem; color:#a49f92; font-weight:700; white-space:nowrap}
+.fmsg .f-subject{font-size:.74rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--magenta)}
+.fmsg .f-text{font-size:.92rem; color:#4a463f; line-height:1.3;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+.fmsg .f-extra{font-size:.74rem; color:#8a857b; display:flex; flex-wrap:wrap; gap:.5rem .8rem; margin-top:.05rem}
+.fmsg .f-extra b{color:#6f6b61; font-weight:700}
 
 /* ===== Sadetutka ===== */
 .radar{min-height:0}
@@ -397,19 +425,27 @@ main{
       </div>
     </div>
 
-    <!-- SARAKE 3: aikataulu -->
+    <!-- SARAKE 3: aikataulu + käynnissä olevat operaatiot -->
     <div class="col">
-      <div class="card sched">
+      <div class="card sched" style="flex:1 1 auto">
         <div class="card-h"><span class="ic">📋</span><h2>Päivän ohjelma</h2><span class="sub" id="schedDay">–</span></div>
         <div class="list" id="schedList"><div class="muted">Ladataan ohjelmaa…</div></div>
       </div>
+      <div class="card ops" style="flex:0 0 auto">
+        <div class="card-h"><span class="ic">🛠️</span><h2>Käynnissä olevat operaatiot</h2><span class="sub" id="opsStatus">–</span></div>
+        <div class="opsbody" id="opsBody"><div class="muted">Ladataan…</div></div>
+      </div>
     </div>
 
-    <!-- SARAKE 4: uutiset -->
+    <!-- SARAKE 4: uutiset + osallistujaviestintä -->
     <div class="col">
-      <div class="card news">
+      <div class="card news" style="flex:1 1 auto">
         <div class="card-h"><span class="ic">📣</span><h2>Pääuutiset · Kaiku-sovellus</h2><span class="sub live-off" id="newsStatus"><span class="dot"></span>–</span></div>
         <div class="scroller"><div class="track" id="newsTrack"><div class="muted">Ladataan uutisia…</div></div></div>
+      </div>
+      <div class="card msgform" style="flex:0 0 auto">
+        <div class="card-h"><span class="ic">✉️</span><h2>Osallistujaviestintä</h2><span class="sub" id="formStatus">–</span></div>
+        <div class="formbody" id="formBody"><div class="muted">Ladataan viestejä…</div></div>
       </div>
     </div>
   </main>
@@ -929,16 +965,74 @@ async function loadUusi(){
       const list = j.uusi || j.tickets || [];
       renderUusi(list); setBadge(list.length);
       st.textContent = list.length ? `${list.length} uutta` : 'Ei uusia';
+      renderOps(opsFrom(j.buckets));
     } else if (j.status === 'awaiting-login'){
       document.getElementById('uusiBody').innerHTML = `<div class="muted">Kirjaudu tiketti-palvelimen ikkunassa nähdäksesi tiketit.</div>`;
       st.textContent = 'Kirjaudu'; setBadge(0);
+      opsNote('Kirjaudu', '<div class="muted">Kirjaudu tiketti-palvelimen ikkunassa.</div>');
     } else {
       document.getElementById('uusiBody').innerHTML = `<div class="muted">Käynnistetään tiketti-palvelinta…</div>`;
       st.textContent = '…';
+      opsNote('…', '<div class="muted">Käynnistetään tiketti-palvelinta…</div>');
     }
   }catch(e){
     document.getElementById('uusiBody').innerHTML = `<div class="muted">Tiketti-palvelinta ei tavoiteta (localhost:8137). Käynnistä <b>ticket-server</b>.</div>`;
     st.textContent = 'Ei yhteyttä'; setBadge(0);
+    opsNote('Ei yhteyttä', `<div class="muted">Tiketti-palvelinta ei tavoiteta (localhost:8137).</div>`);
+  }
+}
+
+/* ============ KÄYNNISSÄ OLEVAT OPERAATIOT (Käsittelyssä operaatiokeskuksessa) ============ */
+function opsFrom(buckets){ const b=(buckets||[]).find(x=>x.name==='Käsittelyssä operaatiokeskuksessa'); return b?b.tickets:[]; }
+function opsNote(status, html){ document.getElementById('opsStatus').textContent = status; document.getElementById('opsBody').innerHTML = html; }
+function renderOps(list){
+  document.getElementById('opsStatus').textContent = list.length ? `${list.length} kpl` : 'Ei nyt';
+  const el = document.getElementById('opsBody');
+  if (!list.length){ el.innerHTML = `<div class="op-zero">Ei käynnissä olevia operaatioita</div>`; return; }
+  el.innerHTML = list.map(t => `<div class="op">
+    <div class="o-top"><span class="o-id">#${esc(t.id)}</span>${t.safety?'<span class="o-flag">⚠️ Turv.</span>':''}</div>
+    <div class="o-title">${esc(t.title||'(nimetön tiketti)')}</div>
+    ${(t.topic||t.location||t.reporter)?`<div class="o-meta">${[t.topic?'🏷️ '+esc(t.topic):'',t.location?'📍 '+esc(t.location):'',t.reporter?'👤 '+esc(t.reporter):''].filter(Boolean).join(' · ')}</div>`:''}
+  </div>`).join('');
+}
+
+/* ============ OSALLISTUJAVIESTINTÄ (lomakkeen 3 uusinta, tiketti-palvelimelta) ============ */
+const FORM_API = new URLSearchParams(location.search).get('formApi') || TICKET_API.replace(/\/api\/tickets$/, '/api/form');
+function renderForm(entries){
+  const st = document.getElementById('formStatus');
+  const el = document.getElementById('formBody');
+  if (!entries.length){ el.innerHTML = `<div class="muted">Ei viestejä.</div>`; st.textContent = '0'; return; }
+  st.textContent = `${entries.length} uusinta`;
+  el.innerHTML = entries.map(e => {
+    const extra = (e.extras||[]).map(x=>`<span><b>${esc(x.k)}:</b> ${esc(x.v)}</span>`).join('');
+    return `<div class="fmsg">
+      <div class="f-top"><span class="f-who">${esc(e.who||'Osallistuja')}</span>${e.when?`<span class="f-when">${esc(e.when)}</span>`:''}</div>
+      ${e.subject?`<div class="f-subject">${esc(e.subject)}</div>`:''}
+      ${e.message?`<div class="f-text">${esc(e.message)}</div>`:''}
+      ${extra?`<div class="f-extra">${extra}</div>`:''}
+    </div>`;
+  }).join('');
+}
+async function loadForm(){
+  const st = document.getElementById('formStatus');
+  try{
+    const r = await fetch(FORM_API, { cache:'no-store' });
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    if (j.status === 'ok'){ renderForm(j.entries || []); }
+    else if (j.status === 'awaiting-login'){
+      document.getElementById('formBody').innerHTML = `<div class="muted">Kirjaudu tiketti-palvelimen ikkunassa nähdäksesi viestit.</div>`;
+      st.textContent = 'Kirjaudu';
+    } else if (j.status === 'error'){
+      document.getElementById('formBody').innerHTML = `<div class="muted">${esc(j.error||'Lomaketta ei voitu lukea.')}</div>`;
+      st.textContent = 'Virhe';
+    } else {
+      document.getElementById('formBody').innerHTML = `<div class="muted">Käynnistetään…</div>`;
+      st.textContent = '…';
+    }
+  }catch(e){
+    document.getElementById('formBody').innerHTML = `<div class="muted">Tiketti-palvelinta ei tavoiteta (localhost:8137). Käynnistä <b>ticket-server</b>.</div>`;
+    st.textContent = 'Ei yhteyttä';
   }
 }
 
@@ -1040,7 +1134,8 @@ setInterval(renderShift, 30000);          // päivitä työvuorossa-nyt
 loadWeather();      setInterval(loadWeather, 10*60*1000);   // 10 min
 loadNews();         setInterval(loadNews, 5*60*1000);       // 5 min
 loadScheduleLive(); setInterval(loadScheduleLive, 15*60*1000);
-loadUusi();         setInterval(loadUusi, 60000);           // 60 s — uudet tiketit
+loadUusi();         setInterval(loadUusi, 60000);           // 60 s — uudet tiketit + käynnissä olevat operaatiot
+loadForm();         setInterval(loadForm, 60000);           // 60 s — osallistujaviestintä (live)
 startRadar();                                               // sadetutka (Leaflet + FMI)
 </script>
 </body>

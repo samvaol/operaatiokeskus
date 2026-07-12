@@ -24,6 +24,10 @@ Hosted at <https://github.com/samvaol/operaatiokeskus>.
   every 5 min. Non-interactive. `.radarwrap` needs `isolation:isolate` so Leaflet's internal
   z-indexes (200–700) don't paint over the ticket modal.
 - **Uudet tiketit** — Uusi tickets always on screen (col 1), 60 s refresh from ticket-server.
+- **Käynnissä olevat operaatiot** — the "Käsittelyssä operaatiokeskuksessa" bucket (col 3, under
+  Ohjelma), 60 s refresh (reuses the same `/api/tickets` fetch as the Uusi panel).
+- **Osallistujaviestintä** — 3 latest form responses (col 4, under Pääuutiset), live 60 s refresh
+  from `/api/form`. The `ticket-server` downloads + parses the SharePoint Excel workbook.
 - **Päivän ohjelma** — today's whole-camp events (nyt/seuraava), embedded snapshot +
   optional live `kaiku2026.fi/api/schedules`.
 - **Työvuorossa nyt** — current 1./2. shift from `Operaatiokeskuksen työvuorolista.xlsx`
@@ -44,6 +48,14 @@ Hosted at <https://github.com/samvaol/operaatiokeskus>.
   `page.evaluate`-in-a-visible-tab approach, which broke on SPA navigation / tab switches.
 - Serves CORS-open `GET /api/tickets` → `{status, buckets, uusi, count}` (+ `/api/health`)
   and a Kaiku all-statuses board at `/`.
+- Also serves `GET /api/form` → `{status, entries}` — the **3 latest** responses from the
+  *Osallistujaviestintä* Excel workbook (site `UudenmaanPiirileiri2026`, referenced by its
+  sourcedoc GUID via `GetFileById`). Downloads the `.xlsx` binary with `context.request` and
+  parses it in-process with a **dependency-free zip + OOXML reader** (`unzip`/`parseSheet`/
+  `parseSharedStrings`/`parseStyles`/`extractForm`), detecting the date column from `styles.xml`
+  and mapping columns to who/subject/message/extras by header. Refreshed every 60 s (live).
+  The startup is guarded by `require.main === module` so the parser can be unit-tested without
+  launching Playwright (`module.exports` exposes the helpers).
 - **Needs live verification** against a logged-in SharePoint session (restart the server to
   load new code). Verified locally: syntax, endpoints, `awaiting-login` fallback; REST list
   paths return 403 unauth (valid).
