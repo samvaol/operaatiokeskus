@@ -100,6 +100,17 @@ async function ensureSpPage() {
   await spPage.goto(SITE, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
   return spPage;
 }
+// SharePoint Onlinessa FedAuth-eväste on SITE COLLECTION -kohtainen: Tiketin-kirjautuminen
+// ei yksin riitä toiselle sivustokokoelmalle. Käydään lomakkeen sivustolla kerran, jolloin
+// selain suorittaa SSO-kättelyn (rtFa → FedAuth) ja eväste tallentuu kontekstiin.
+let formPage = null;
+async function ensureFormPage() {
+  if (!formPage || formPage.isClosed()) formPage = await context.newPage();
+  if (!formPage.url().startsWith(FORM_SITE)) {
+    await formPage.goto(FORM_SITE, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+  }
+  return formPage;
+}
 async function requestJsonViaPage(url) {
   const p = await ensureSpPage();
   if (!p.url().startsWith('https://partio.sharepoint.com')) await p.goto(SITE, { waitUntil: 'domcontentloaded' }).catch(() => {});
@@ -130,22 +141,27 @@ async function requestJson(url) {
 }
 
 // --- binäärilataus kirjautuneilla evästeillä (Excel-työkirja) ---
+// HUOM: kirjautumaton SharePoint palauttaa sign-in-HTML:n HTTP 200:lla, joten pelkkä
+// status ei riitä — hylätään text/html-vastaukset (ne eivät ole työkirja).
 async function requestBuffer(url) {
   let lastStatus = 0;
+  // varmista lomakkeen sivustokokoelman kirjautuminen ennen latausta
+  await ensureFormPage().catch(() => {});
   // 1) context.request — jakaa selainkontekstin evästeet
   try {
     const r = await context.request.get(url, { timeout: 30000 });
-    if (r.status() === 200) return { ok: true, status: 200, buf: await r.body() };
-    lastStatus = r.status();
+    const ct = String(r.headers()['content-type'] || '');
+    if (r.status() === 200 && !ct.includes('text/html')) return { ok: true, status: 200, buf: await r.body() };
+    lastStatus = r.status() === 200 ? 401 : r.status(); // 200+HTML ≈ kirjautumissivu
   } catch (_) { /* jatka varareittiin */ }
-  // 2) varareitti: palvelimen kirjautunut taustasivu (same-origin fetch → base64)
+  // 2) varareitti: palvelimen kirjautunut taustasivu LOMAKKEEN sivustolla (same-origin fetch → base64)
   try {
-    const p = await ensureSpPage();
-    if (!p.url().startsWith('https://partio.sharepoint.com')) await p.goto(SITE, { waitUntil: 'domcontentloaded' }).catch(() => {});
+    const p = await ensureFormPage();
     const out = await p.evaluate(async (u) => {
       try {
         const r = await fetch(u, { credentials: 'include' });
-        if (r.status !== 200) return { ok: false, status: r.status };
+        const ct = r.headers.get('content-type') || '';
+        if (r.status !== 200 || ct.includes('text/html')) return { ok: false, status: r.status === 200 ? 401 : r.status };
         const bytes = new Uint8Array(await r.arrayBuffer());
         let bin = ''; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
         return { ok: true, status: 200, b64: btoa(bin) };
@@ -317,7 +333,13 @@ async function pollForm() {
       formState.lastHttp = res.status;
       if (res.status === 404) { formState.status = 'error'; formState.error = 'Tiedostoa ei löytynyt (404).'; }
       else { formState.status = 'awaiting-login'; formState.error = null; }
-      console.log(`[form] ${res.status === 404 ? 'tiedosto puuttuu' : 'ei kirjautunut'} (HTTP ${res.status})`);
+      console.log(`[form] ${res.status === 404 ? 'tiedosto puuttuu' : 'ei kirjautunut'} (HTTP ${res.status}) — kirjaudu UudenmaanPiirileiri2026-sivustolle`);
+      return;
+    }
+    // Varmista että lataus on aito xlsx (zip: PK\x03\x04) — muutoin se on esim. kirjautumissivu.
+    if (!(res.buf.length >= 4 && res.buf.readUInt32BE(0) === 0x504b0304)) {
+      formState.status = 'awaiting-login'; formState.error = null; formState.lastHttp = 401;
+      console.log(`[form] vastaus ei ollut xlsx-tiedosto (${res.buf.length} tavua) — todennäk. kirjautumissivu; kirjaudu UudenmaanPiirileiri2026-sivustolle`);
       return;
     }
     const entries = extractForm(unzip(res.buf));
