@@ -18,8 +18,8 @@ index.html              # the whole dashboard (styles + markup + script in one f
 README.md               # user-facing setup (incl. Node-on-Windows)
 progress.md             # running dev log
 ticket-server/
-  server.js             # Express + Playwright: login → read "Uusi" tickets → serve JSON
-  public/index.html     # Kaiku-styled ticket board served by the server
+  server.js             # Express + Playwright: login → read all tickets (grouped) → serve JSON
+  public/index.html     # Kaiku-styled all-statuses ticket board served by the server
   package.json          # express + playwright
   .gitignore            # node_modules/ .auth/   (NEVER commit .auth — login session)
 ```
@@ -32,10 +32,16 @@ ticket-server/
   CORS `*`. Section **78074354 = Pääuutiset** (not the widget 78074355). Content URL discovered
   via `kaiku2026.coregoapp.com/apiv4/getSettings?platform=webapp`
   (`gbsettings.sections.<id>.contentSource.url`).
+- **Sadetutka (radar)**: Leaflet map on `61.204934767500795,25.1210434592283`; FMI radar WMS
+  `openwms.fmi.fi/geoserver/wms` layer `Radar:suomi_dbz_eureffin` (EPSG:3857, CORS `*`) over a
+  CARTO light base. Leaflet loaded from unpkg CDN. `.radarwrap` uses `isolation:isolate` so
+  Leaflet's z-index 200–700 panes don't paint over the ticket modal (z 900).
 - **Schedule**: embedded whole-camp snapshot + optional live `kaiku2026.fi/api/schedules`
   (usually CORS-blocked → snapshot used).
 - **Työvuorot**: embedded `WORKSHIFTS` object parsed from `Operaatiokeskuksen työvuorolista.xlsx`.
 - **Tiketit**: via the local `ticket-server` (see below), never SharePoint directly.
+- **Konfetti**: `tickTimer` fires `celebrate(pct)` (canvas confetti + toast) on each whole-percent
+  advance of the camp progress; `#confetti`/`#celebrateToast` at z 1000/1100.
 
 Every source has an **embedded fallback** so the dashboard never goes blank.
 
@@ -44,11 +50,15 @@ Every source has an **embedded fallback** so the dashboard never goes blank.
   but no `Access-Control-Allow-Credentials` (cookie blocked cross-origin), and list pages set
   `X-Frame-Options` (no iframe). So the Node server logs in via a real Playwright browser
   window and reads REST **from inside** the authenticated page (same-origin).
-- List `df73229b-1f4b-4e2a-b342-c91b7dbd8a12` at `/sites/Tiketin`; the board's status field is
-  **`Status`** (choice), value **`Uusi`**. REST:
-  `_api/web/lists(guid'…')/items?$filter=Status eq 'Uusi'&$orderby=Created desc`.
-- Serves `GET /api/tickets` (CORS `*`) → `{status:'ok'|'awaiting-login'|'starting', tickets:[…]}`.
-  Dashboard popup reads `http://localhost:8137/api/tickets` (override `?ticketApi=`).
+- List referenced **by URL** `/sites/Tiketin/Lists/OpkeOspa` via `_api/web/getList(@l)?@l='…'`
+  (not the GUID — an authed call to a wrong GUID 404s). Status field = **`Status`** (choice;
+  7 values Uusi…Ei käsitellä). Fetches **all** items, groups by status.
+- Extraction uses **`context.request.get`** (shares the logged-in context cookies; immune to
+  which tab is open), with a server-owned background page (`requestJsonViaPage`) as fallback.
+  Do **not** poll via `page.evaluate` on a user-visible tab — it breaks on SPA nav / tab switch.
+- Serves `GET /api/tickets` (CORS `*`) → `{status:'ok'|'awaiting-login'|'starting', buckets:[…],
+  uusi:[…], count}`. Dashboard's Uusi panel reads `j.uusi`; popup reads `j.buckets`. Override host
+  with `?ticketApi=`.
 - Run: `cd ticket-server && npm install && npm start`. `HEADLESS=1` runs headless (only works
   once `.auth` is warm). Session persists in `ticket-server/.auth` (git-ignored, secret).
 

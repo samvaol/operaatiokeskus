@@ -10,22 +10,26 @@ self-contained `index.html` (HTML + CSS + vanilla JS, no build step) sized for a
 - **Tervehdys + kello** — time-of-day greeting, live clock, and an animated "kaiku"
   equalizer / LIVE indicator.
 - **Leirikello** — elapsed camp time since 10.7.2026 09:00 with a progress bar to 18.7.
+  A **confetti burst + "Leiri N % takana!"** fires each time the camp advances a whole percent.
 - **Sää · Evo, Hämeenlinna** — live forecast from the Finnish Meteorological Institute
   (Ilmatieteen laitos), including the forest-fire warning (*metsäpalovaroitus*).
+- **Sadetutka · Evo** — live FMI weather radar (Leaflet map) centred on Evo, refreshed every 5 min.
 - **Päivän ohjelma** — today's whole-camp programme with *nyt* / *seuraava* markers.
 - **Työvuorossa nyt** — who is on shift right now (from the työvuorolista).
+- **Uudet tiketit** — the "Uusi" SharePoint tickets, always on screen, refreshed every 60 s.
 - **Pääuutiset** — the latest articles from the Kaiku 2026 app.
-- **Tiketit** (🎫 button) — a popup of the new SharePoint tickets, refreshed every 60 s.
+- **Tiketit** (🎫 button) — a popup of the full board, **all status columns** grouped.
 
 ## Data sources
 
 | Panel | Source |
 |-------|--------|
 | Weather + forest-fire | Ilmatieteen laitos open data (WFS) |
+| Sadetutka (radar) | FMI radar WMS (`Radar:suomi_dbz_eureffin`) + Leaflet/CARTO base |
 | Pääuutiset | Kaiku 2026 app content API (Corego / GoodBarber) |
 | Päivän ohjelma | Leirilukkari camp schedule + embedded snapshot |
 | Työvuorot | `Operaatiokeskuksen työvuorolista.xlsx` (embedded) |
-| Tiketit | SharePoint list *Opke/Ospa* (status = "Uusi") via the local `ticket-server` |
+| Tiketit (kaikki tilat) | SharePoint list *Opke/Ospa*, all statuses, via the local `ticket-server` |
 
 Each source has an embedded fallback so the dashboard keeps working offline.
 
@@ -39,11 +43,12 @@ folder solves this with a small Node backend:
 1. On start it opens a **browser window to the Tiketin site — you log in once** with your
    partio account (the session is saved to `ticket-server/.auth`, so you don't log in
    again next time).
-2. It then reads the **"Uusi"** tickets from the *Opke/Ospa* list every **60 s** by
-   calling the SharePoint REST API from inside the logged-in page (same-origin → cookies
-   work).
-3. It serves them CORS-open at `http://localhost:8137/api/tickets`, plus a
-   Kaiku-styled board at `http://localhost:8137/`.
+2. It then reads **all tickets** from the *Opke/Ospa* list every **60 s** and groups them
+   by status (Uusi, Käsittelemättömät, … Valmis), by calling the SharePoint REST API with
+   Playwright's `context.request` (which carries the logged-in cookies — immune to which
+   browser tab is open).
+3. It serves them CORS-open at `http://localhost:8137/api/tickets` (`{status, buckets,
+   uusi, …}`), plus a Kaiku-styled **all-statuses board** at `http://localhost:8137/`.
 
 The dashboard's 🎫 **Tiketit** popup reads that endpoint (override with
 `?ticketApi=http://HOST:8137/api/tickets`). If the server is down, the popup says so; if

@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <style>
 /* ===== Kaiku 2026 -brändi (Visuaalinen ilme V1) ===== */
 :root{
@@ -22,7 +24,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 /* skaalaus TV:lle: perusyksikkö seuraa 16:9 -näkymää */
-html{font-size:clamp(9px, calc(.42vw + .60vh), 24px);}
+html{font-size:clamp(9px, calc(.38vw + .56vh), 22px);}
 body{
   font-family:var(--head); background:var(--savu); color:var(--ink);
   height:100vh; width:100vw; overflow:hidden; -webkit-font-smoothing:antialiased;
@@ -65,7 +67,7 @@ header::after{content:""; position:absolute; left:0; right:0; bottom:0; height:.
 
 /* ===== Runko: 3 saraketta ===== */
 main{
-  display:grid; grid-template-columns:1.02fr 1.15fr 1.05fr; gap:1.1rem;
+  display:grid; grid-template-columns:0.92fr 1fr 1.06fr 1.02fr; gap:.95rem;
   padding:1.1rem; min-height:0;
 }
 .col{display:flex; flex-direction:column; gap:1.1rem; min-height:0}
@@ -83,6 +85,54 @@ main{
 .card.shift{--accent:var(--rusko)}
 .card.sched{--accent:var(--oranssi)}
 .card.news{--accent:var(--punainen)}
+.card.tickets{--accent:var(--punainen)}
+.card.radar{--accent:var(--meri)}
+
+/* ===== Uudet tiketit -paneeli ===== */
+.tickets{min-height:0}
+.tickets .scroller{flex:1 1 auto; min-height:0; overflow:hidden; position:relative}
+.tickets .track{display:flex; flex-direction:column; gap:.5rem}
+.utk{background:#fff5ec; border:1px solid #f4dfce; border-left:.32rem solid var(--punainen);
+  border-radius:.6rem; padding:.5rem .65rem; display:flex; flex-direction:column; gap:.2rem}
+.utk .u-top{display:flex; align-items:center; gap:.4rem}
+.utk .u-id{font-size:.72rem; color:#a49f92; font-weight:700}
+.utk .u-flag{margin-left:auto; font-size:.64rem; font-weight:800; color:#fff; background:var(--rusko); padding:.14rem .42rem; border-radius:999px}
+.utk .u-title{font-weight:800; font-size:1.02rem; line-height:1.15}
+.utk .u-meta{font-size:.76rem; color:#9a958a; font-weight:600}
+.tickets .allzero{margin:auto; text-align:center; color:var(--metsa); font-weight:800; font-size:1.15rem; padding:1.2rem .5rem}
+.tickets .allzero .big{font-size:2.6rem; display:block; margin-bottom:.3rem}
+
+/* ===== Sadetutka ===== */
+.radar{min-height:0}
+.radarwrap{position:relative; flex:1 1 auto; min-height:8rem; border-radius:.85rem; overflow:hidden; background:#dfe7ea; isolation:isolate}
+#radarmap{position:absolute; inset:0}
+.leaflet-container{background:#dfe7ea; font-family:var(--head)}
+.radarnote{position:absolute; left:.55rem; bottom:.55rem; z-index:500; background:rgba(0,68,94,.85); color:var(--savu);
+  font-size:.72rem; font-weight:700; padding:.28rem .62rem; border-radius:999px; pointer-events:none}
+.radardot{position:absolute; left:50%; top:50%; z-index:500; width:.9rem; height:.9rem; margin:-.45rem 0 0 -.45rem;
+  border-radius:50%; background:var(--punainen); box-shadow:0 0 0 .28rem rgba(255,99,58,.35); pointer-events:none}
+
+/* ===== Konfetti + juhlaviesti (leirikellon prosentti kasvaa) ===== */
+#confetti{position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:1000}
+#celebrateToast{position:fixed; left:50%; top:20%; transform:translate(-50%,-10px); z-index:1100;
+  background:var(--metsa); color:var(--savu); font-weight:800; font-size:1.7rem; padding:1rem 2.1rem; border-radius:999px;
+  box-shadow:0 1rem 3rem rgba(0,40,55,.42); border:.2rem solid var(--kulta); opacity:0; pointer-events:none; white-space:nowrap}
+#celebrateToast b{color:var(--kulta)}
+#celebrateToast.show{animation:celebrate 4.2s ease forwards}
+@keyframes celebrate{0%{opacity:0; transform:translate(-50%,12px) scale(.92)}
+  9%{opacity:1; transform:translate(-50%,0) scale(1)}
+  82%{opacity:1; transform:translate(-50%,0) scale(1)}
+  100%{opacity:0; transform:translate(-50%,-14px) scale(1)}}
+
+/* ===== Tiketit-popup: statusryhmät ===== */
+.bkt{margin-bottom:1.1rem}
+.bkt-h{display:flex; align-items:center; gap:.5rem; margin-bottom:.6rem}
+.bkt-h .nm{font-weight:800; font-size:1.15rem; color:var(--ink)}
+.bkt-h .ct{font-weight:800; font-size:.82rem; color:#fff; background:var(--c,#8f8a7e); min-width:1.5rem; height:1.5rem;
+  padding:0 .45rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center}
+.bkt-h::after{content:""; flex:1 1 auto; height:2px; background:var(--c,#8f8a7e); opacity:.25; border-radius:2px}
+.bkt-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.8rem}
+.bkt .tk{border-top-color:var(--c,var(--punainen))}
 .card-h{display:flex; align-items:center; gap:.6rem; margin-bottom:.9rem; padding-bottom:.7rem;
   border-bottom:1px solid #eee3cd; flex:0 0 auto}
 .card.dark .card-h,.card.forest .card-h{border-bottom-color:rgba(249,243,230,.16)}
@@ -198,7 +248,7 @@ main{
   min-width:1.3rem; height:1.3rem; padding:0 .35rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center}
 .ticketbtn:active{transform:scale(.97)}
 
-.modal-backdrop{position:fixed; inset:0; z-index:50; background:rgba(0,68,94,.55); backdrop-filter:blur(3px);
+.modal-backdrop{position:fixed; inset:0; z-index:900; background:rgba(0,68,94,.55); backdrop-filter:blur(3px);
   display:flex; align-items:center; justify-content:center; padding:3vh 3vw}
 .modal-backdrop[hidden]{display:none}
 .modal{width:min(1100px,92vw); max-height:92vh; background:var(--savu); border-radius:1.4rem;
@@ -213,8 +263,7 @@ main{
   border:none; border-radius:999px; padding:.55rem 1rem; background:var(--kulta); color:var(--metsa)}
 .mbtn.ghost{background:rgba(249,243,230,.16); color:var(--savu); border:1px solid rgba(249,243,230,.35)}
 .mclose{background:none; border:none; color:var(--savu); font-size:1.4rem; cursor:pointer; padding:.2rem .5rem; line-height:1}
-.modal-body{flex:1 1 auto; min-height:0; overflow-y:auto; padding:1.3rem 1.4rem;
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem; align-content:start}
+.modal-body{flex:1 1 auto; min-height:0; overflow-y:auto; padding:1.3rem 1.4rem; display:block}
 .tk{background:#fff; border-radius:1rem; box-shadow:var(--shadow); padding:1rem 1.1rem; border-top:.4rem solid var(--punainen);
   display:flex; flex-direction:column; gap:.4rem}
 .tk .tk-top{display:flex; align-items:center; gap:.5rem}
@@ -300,7 +349,7 @@ main{
 
   <!-- ===================== RUNKO ===================== -->
   <main>
-    <!-- SARAKE 1: leirikello + sää + työvuoro -->
+    <!-- SARAKE 1: leirikello + työvuoro + uudet tiketit -->
     <div class="col">
       <div class="card forest timer" style="flex:0 0 auto">
         <svg class="kuosi" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="220" fill="url(#kp)"/></svg>
@@ -320,18 +369,35 @@ main{
         </div>
       </div>
 
+      <div class="card shift" style="flex:0 0 auto">
+        <div class="card-h"><span class="ic">🦺</span><h2>Työvuorossa nyt</h2><span class="sub" id="shiftDay">–</span></div>
+        <div id="shiftBody" class="muted">Ladataan työvuoroja…</div>
+      </div>
+
+      <div class="card tickets" style="flex:1 1 auto">
+        <div class="card-h"><span class="ic">🎫</span><h2>Uudet tiketit</h2><span class="sub" id="uusiStatus">–</span></div>
+        <div class="scroller"><div class="track" id="uusiBody"><div class="muted">Ladataan tikettejä…</div></div></div>
+      </div>
+    </div>
+
+    <!-- SARAKE 2: sää + sadetutka -->
+    <div class="col">
       <div class="card weather" style="flex:0 0 auto">
         <div class="card-h"><span class="ic">🌤️</span><h2>Sää · Evo, Hämeenlinna</h2><span class="sub" id="wStatus"><span class="spin"></span></span></div>
         <div id="weatherBody" class="muted">Ladataan säätietoja…</div>
       </div>
 
-      <div class="card shift" style="flex:1 1 auto">
-        <div class="card-h"><span class="ic">🦺</span><h2>Työvuorossa nyt</h2><span class="sub" id="shiftDay">–</span></div>
-        <div id="shiftBody" class="muted">Ladataan työvuoroja…</div>
+      <div class="card radar" style="flex:1 1 auto">
+        <div class="card-h"><span class="ic">🛰️</span><h2>Sadetutka · Evo</h2><span class="sub" id="radarStatus">FMI</span></div>
+        <div class="radarwrap">
+          <div id="radarmap"></div>
+          <div class="radardot"></div>
+          <div class="radarnote">Ilmatieteen laitos · sadetutka</div>
+        </div>
       </div>
     </div>
 
-    <!-- SARAKE 2: aikataulu -->
+    <!-- SARAKE 3: aikataulu -->
     <div class="col">
       <div class="card sched">
         <div class="card-h"><span class="ic">📋</span><h2>Päivän ohjelma</h2><span class="sub" id="schedDay">–</span></div>
@@ -339,7 +405,7 @@ main{
       </div>
     </div>
 
-    <!-- SARAKE 3: uutiset -->
+    <!-- SARAKE 4: uutiset -->
     <div class="col">
       <div class="card news">
         <div class="card-h"><span class="ic">📣</span><h2>Pääuutiset · Kaiku-sovellus</h2><span class="sub live-off" id="newsStatus"><span class="dot"></span>–</span></div>
@@ -347,13 +413,14 @@ main{
       </div>
     </div>
   </main>
+  <canvas id="confetti" aria-hidden="true"></canvas>
 </div>
 
 <!-- ===================== TIKETIT-POPUP (uudet tiketit) ===================== -->
 <div class="modal-backdrop" id="ticketModal" hidden>
   <div class="modal">
     <div class="modal-h">
-      <div class="mt"><span class="ic">🎫</span> Uudet tiketit · Opke/Ospa</div>
+      <div class="mt"><span class="ic">🎫</span> Tiketit · Opke/Ospa</div>
       <div class="mstatus" id="ticketStatus"><span class="spin"></span> Ladataan…</div>
       <div class="mactions">
         <button id="ticketLogin" type="button" class="mbtn ghost">🔑 Kirjaudu</button>
@@ -411,6 +478,7 @@ function tickClock(){
 }
 
 /* ============ LEIRIKELLO ============ */
+let lastPct = null; // edellinen näytetty prosentti (konfettia varten)
 function tickTimer(){
   const now = Date.now();
   const phaseEl = document.getElementById('timerPhase');
@@ -431,7 +499,11 @@ function tickTimer(){
   let pct = (now - CAMP_START.getTime()) / total * 100;
   pct = Math.max(0, Math.min(100, pct));
   document.getElementById('tFill').style.width = pct.toFixed(1) + '%';
-  document.getElementById('tPct').textContent = Math.round(pct) + ' %';
+  const shown = Math.round(pct);
+  document.getElementById('tPct').textContent = shown + ' %';
+  // juhli aina kun leiri etenee kokonaisen prosentin
+  if (lastPct === null) lastPct = shown;
+  else if (shown > lastPct){ lastPct = shown; if (shown > 0 && shown <= 100) celebrate(shown); }
 }
 
 /* ============ SÄÄ (Ilmatieteen laitos, WFS) ============ */
@@ -819,8 +891,8 @@ async function loadTickets(){
     if (!r.ok) throw new Error('HTTP '+r.status);
     const j = await r.json();
     if (j.status === 'ok'){
-      renderTickets(j.tickets || []);
-      setBadge((j.tickets || []).length);
+      renderBuckets(j.buckets || []);
+      setBadge((j.uusi || j.tickets || []).length);
       status.textContent = 'Päivitetty ' + (j.updatedAt ? fmtStamp(j.updatedAt) : fmtStamp(new Date().toISOString()));
     } else if (j.status === 'awaiting-login'){
       document.getElementById('ticketBody').innerHTML = ticketLoginNote();
@@ -837,6 +909,128 @@ async function loadTickets(){
   }
 }
 
+/* ============ UUDET TIKETIT -PANEELI (pääsivu) ============ */
+function renderUusi(list){
+  const el = document.getElementById('uusiBody');
+  if (!list.length){ el.innerHTML = `<div class="allzero"><span class="big">✅</span>Ei uusia tikettejä</div>`; return; }
+  el.innerHTML = list.map(t => `<div class="utk">
+    <div class="u-top"><span class="u-id">#${esc(t.id)}</span>${t.safety?'<span class="u-flag">⚠️ Turv.</span>':''}</div>
+    <div class="u-title">${esc(t.title||'(nimetön tiketti)')}</div>
+    ${(t.location||t.reporter)?`<div class="u-meta">${[t.location?'📍 '+esc(t.location):'',t.reporter?'👤 '+esc(t.reporter):''].filter(Boolean).join(' · ')}</div>`:''}
+  </div>`).join('');
+}
+async function loadUusi(){
+  const st = document.getElementById('uusiStatus');
+  try{
+    const r = await fetch(TICKET_API, { cache:'no-store' });
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    if (j.status === 'ok'){
+      const list = j.uusi || j.tickets || [];
+      renderUusi(list); setBadge(list.length);
+      st.textContent = list.length ? `${list.length} uutta` : 'Ei uusia';
+    } else if (j.status === 'awaiting-login'){
+      document.getElementById('uusiBody').innerHTML = `<div class="muted">Kirjaudu tiketti-palvelimen ikkunassa nähdäksesi tiketit.</div>`;
+      st.textContent = 'Kirjaudu'; setBadge(0);
+    } else {
+      document.getElementById('uusiBody').innerHTML = `<div class="muted">Käynnistetään tiketti-palvelinta…</div>`;
+      st.textContent = '…';
+    }
+  }catch(e){
+    document.getElementById('uusiBody').innerHTML = `<div class="muted">Tiketti-palvelinta ei tavoiteta (localhost:8137). Käynnistä <b>ticket-server</b>.</div>`;
+    st.textContent = 'Ei yhteyttä'; setBadge(0);
+  }
+}
+
+/* ============ SADETUTKA (Ilmatieteen laitos, WMS) ============ */
+let radarMap = null, radarLayer = null;
+function initRadar(){
+  if (!window.L || radarMap) return;
+  const el = document.getElementById('radarmap'); if (!el) return;
+  radarMap = L.map(el, { center:[61.204934767500795, 25.1210434592283], zoom:8,
+    zoomControl:false, attributionControl:false, dragging:false, scrollWheelZoom:false,
+    doubleClickZoom:false, boxZoom:false, keyboard:false, touchZoom:false, tap:false, inertia:false, fadeAnimation:false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains:'abcd', maxZoom:12, detectRetina:true }).addTo(radarMap);
+  radarLayer = L.tileLayer.wms('https://openwms.fmi.fi/geoserver/wms', {
+    layers:'Radar:suomi_dbz_eureffin', format:'image/png', transparent:true, opacity:0.6, version:'1.3.0'
+  }).addTo(radarMap);
+  refreshRadar();
+  setInterval(refreshRadar, 5*60*1000); // sadetutka päivittyy ~5 min välein
+  setTimeout(() => radarMap && radarMap.invalidateSize(), 500);
+}
+function refreshRadar(){
+  if (radarLayer) radarLayer.setParams({ ts: Date.now() });
+  const s = document.getElementById('radarStatus'); if (s) s.textContent = 'Päivitetty ' + helParts(Date.now()).hm.replace(':','.');
+}
+function startRadar(){ if (window.L) initRadar(); else setTimeout(startRadar, 200); }
+window.addEventListener('resize', () => radarMap && radarMap.invalidateSize());
+
+/* ============ KONFETTI (leiri etenee prosentin) ============ */
+const confettiCanvas = document.getElementById('confetti');
+const cctx = confettiCanvas.getContext('2d');
+let confetti = [], confettiRAF = null;
+const CONF_COLORS = ['#FF633A','#FF8940','#FFAE40','#005448','#F0A6CF','#6CB7E5'];
+function sizeConfetti(){ confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight; }
+sizeConfetti(); window.addEventListener('resize', sizeConfetti);
+function celebrate(pct){
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){ showCelebrateToast(pct); return; }
+  for (let i=0; i<170; i++){
+    confetti.push({ x: innerWidth*(0.1+Math.random()*0.8), y: -20 - Math.random()*innerHeight*0.3,
+      vx:(Math.random()-0.5)*7, vy:2+Math.random()*5, r:5+Math.random()*8, rot:Math.random()*6.28,
+      vr:(Math.random()-0.5)*0.35, color:CONF_COLORS[i%CONF_COLORS.length], shape:Math.random()<0.5?'rect':'circ' });
+  }
+  showCelebrateToast(pct);
+  if (!confettiRAF) confettiRAF = requestAnimationFrame(confettiTick);
+}
+function confettiTick(){
+  cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  confetti = confetti.filter(p => p.y < confettiCanvas.height + 40);
+  for (const p of confetti){
+    p.vy += 0.09; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vx *= 0.99;
+    cctx.save(); cctx.translate(p.x, p.y); cctx.rotate(p.rot); cctx.fillStyle = p.color;
+    if (p.shape==='rect') cctx.fillRect(-p.r/2, -p.r/2, p.r, p.r*0.6);
+    else { cctx.beginPath(); cctx.arc(0,0,p.r/2,0,6.283); cctx.fill(); }
+    cctx.restore();
+  }
+  if (confetti.length) confettiRAF = requestAnimationFrame(confettiTick);
+  else { confettiRAF = null; cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
+}
+function showCelebrateToast(pct){
+  let el = document.getElementById('celebrateToast');
+  if (!el){ el = document.createElement('div'); el.id = 'celebrateToast'; document.querySelector('.app').appendChild(el); }
+  el.innerHTML = `🎉 Leiri <b>${pct} %</b> takana!`;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+
+/* ============ TIKETIT-POPUP: kaikki statukset ============ */
+const BUCKET_COLORS = { 'Uusi':'#FF633A','Käsittelemättömät':'#FF8940','Odottaa myöhempää käsittelyä':'#FFAE40',
+  'Käsittelyssä operaatiokeskuksessa':'#005448','Käsittelyssä muilla':'#00445E','Valmis':'#7a9b6f','Ei käsitellä':'#542337' };
+function ticketCard(t, statusName){
+  const meta = [ t.topic?`🏷️ ${esc(t.topic)}`:'', t.location?`📍 ${esc(t.location)}`:'', t.reporter?`👤 ${esc(t.reporter)}`:'', t.created?`🕓 ${fmtDate(t.created)}`:'' ]
+    .filter(Boolean).map(m=>`<span>${m}</span>`).join('');
+  return `<div class="tk">
+    <div class="tk-top"><span class="tk-status" style="background:${BUCKET_COLORS[statusName]||'var(--punainen)'}">${esc(statusName||'Uusi')}</span>${t.safety?'<span class="tk-flag">⚠️ Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
+    <div class="tk-title">${esc(t.title||'(nimetön tiketti)')}</div>
+    ${t.desc?`<div class="tk-desc">${esc(t.desc)}</div>`:''}
+    <div class="tk-meta">${meta}</div>
+  </div>`;
+}
+function renderBuckets(buckets){
+  const body = document.getElementById('ticketBody');
+  const nonEmpty = (buckets||[]).filter(b => b.count>0);
+  if (!nonEmpty.length){
+    body.innerHTML = `<div class="modal-empty"><div class="big">🎉</div><div class="t">Ei tikettejä</div><div class="muted">Listalla ei ole tikettejä.</div></div>`;
+    return;
+  }
+  body.innerHTML = nonEmpty.map(b => {
+    const c = BUCKET_COLORS[b.name] || '#8f8a7e';
+    return `<div class="bkt" style="--c:${c}">
+      <div class="bkt-h"><span class="nm">${esc(b.name)}</span><span class="ct">${b.count}</span></div>
+      <div class="bkt-cards">${b.tickets.map(t => ticketCard(t, b.name)).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
 /* ============ KÄYNNISTYS ============ */
 tickClock(); tickTimer(); renderSchedule(); renderShift();
 setInterval(tickClock, 1000);
@@ -846,6 +1040,8 @@ setInterval(renderShift, 30000);          // päivitä työvuorossa-nyt
 loadWeather();      setInterval(loadWeather, 10*60*1000);   // 10 min
 loadNews();         setInterval(loadNews, 5*60*1000);       // 5 min
 loadScheduleLive(); setInterval(loadScheduleLive, 15*60*1000);
+loadUusi();         setInterval(loadUusi, 60000);           // 60 s — uudet tiketit
+startRadar();                                               // sadetutka (Leaflet + FMI)
 </script>
 </body>
 </html>

@@ -10,13 +10,20 @@ Hosted at <https://github.com/samvaol/operaatiokeskus>.
 ## Done
 
 ### Dashboard (`index.html`, single self-contained file)
-- **Layout** — 1920×1080 TV, 3-column grid, rem-scaled via `html{font-size:clamp(vw+vh)}`.
+- **Layout** — 1920×1080 TV, **4-column grid**, rem-scaled via `html{font-size:clamp(vw+vh)}`.
+  Col 1: Leirikello + Työvuoro + Uudet tiketit · Col 2: Sää + Sadetutka · Col 3: Ohjelma · Col 4: Pääuutiset.
 - **Greeting + clock** — Helsinki-time greeting (huomenta/päivää/iltaa/yötä) + live clock
   + date, plus the animated **kaiku equalizer / LIVE** signature.
 - **Leirikello** — elapsed camp timer from `2026-07-10T09:00+03:00` to `18.7. 16:30`,
-  with progress bar.
+  with progress bar. **Confetti + "Leiri N % takana!" toast** fires each whole-percent
+  advance (canvas confetti, no lib; respects `prefers-reduced-motion`).
 - **Sää · Evo** — live FMI WFS forecast (temp, feels-like, wind, rain, humidity, day/night
   SmartSymbol strip) + `ForestFireWarning`. CORS-open (`*`).
+- **Sadetutka · Evo** — Leaflet map centred on `61.204934767500795, 25.1210434592283`,
+  FMI radar WMS (`Radar:suomi_dbz_eureffin`, CORS `*`) over a CARTO light base, refreshed
+  every 5 min. Non-interactive. `.radarwrap` needs `isolation:isolate` so Leaflet's internal
+  z-indexes (200–700) don't paint over the ticket modal.
+- **Uudet tiketit** — Uusi tickets always on screen (col 1), 60 s refresh from ticket-server.
 - **Päivän ohjelma** — today's whole-camp events (nyt/seuraava), embedded snapshot +
   optional live `kaiku2026.fi/api/schedules`.
 - **Työvuorossa nyt** — current 1./2. shift from `Operaatiokeskuksen työvuorolista.xlsx`
@@ -24,16 +31,22 @@ Hosted at <https://github.com/samvaol/operaatiokeskus>.
   "Operaatiokeskuksen päiväpalaveri" pinned to **16:00** every day.
 - **Pääuutiset** — live from `api.ww-api.com/front/get_items/4554399/78074354/`
   (section 78074354 = Pääuutiset), 5-article embedded fallback.
-- **Tiketit** — 🎫 header button opens a Kaiku popup modal of the new tickets, refreshed
-  every 60 s from the `ticket-server`.
+- **Tiketit** — 🎫 header button opens a Kaiku popup modal of the **full board (all status
+  columns grouped)**, refreshed every 60 s from the `ticket-server`.
 
 ### Ticket server (`ticket-server/`, Node + Express + Playwright)
 - Opens a login window to the SharePoint Tiketin site; session persisted in `.auth`.
-- Reads **Status = "Uusi"** items from list `df73229b-1f4b-4e2a-b342-c91b7dbd8a12`
-  (`/sites/Tiketin`) every 60 s via same-origin REST fetch inside the logged-in page.
-- Serves CORS-open `GET /api/tickets` (+ `/api/health`) and a Kaiku board at `/`.
-- Verified: Express + endpoints + poll pipeline all work (headless test → `awaiting-login`
-  when not signed in; full Chromium installed for the real headed login).
+- Reads **all tickets** from the *Opke/Ospa* list (referenced by URL
+  `/sites/Tiketin/Lists/OpkeOspa`, not the GUID) every 60 s, groups them by the `Status`
+  field into the 7 status buckets, and picks display fields by their SharePoint column titles.
+- Extraction uses **`context.request`** (carries the logged-in cookies; immune to tab
+  navigation), with a server-owned background page as fallback. This replaced the earlier
+  `page.evaluate`-in-a-visible-tab approach, which broke on SPA navigation / tab switches.
+- Serves CORS-open `GET /api/tickets` → `{status, buckets, uusi, count}` (+ `/api/health`)
+  and a Kaiku all-statuses board at `/`.
+- **Needs live verification** against a logged-in SharePoint session (restart the server to
+  load new code). Verified locally: syntax, endpoints, `awaiting-login` fallback; REST list
+  paths return 403 unauth (valid).
 
 ### Design
 - Kaiku 2026 V1 identity throughout (Bricolage Grotesque; metsä/savu + punainen/oranssi/

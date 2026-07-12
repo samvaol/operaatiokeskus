@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#005448" />
-<title>Uudet tiketit · Opke/Ospa</title>
+<title>Tiketit · Opke/Ospa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -17,51 +17,55 @@
   --head:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{font-size:clamp(11px, calc(.42vw + .55vh), 22px)}
-body{font-family:var(--head); background:var(--savu); color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased}
-.app{max-width:1400px; margin:0 auto; padding:1.4rem 1.6rem 3rem}
+html{font-size:clamp(12px, calc(.35vw + .55vh), 20px)}
+body{font-family:var(--head); background:var(--savu); color:var(--ink); height:100vh; overflow:hidden; -webkit-font-smoothing:antialiased}
+.app{height:100vh; display:flex; flex-direction:column; padding:1.1rem 1.3rem 1.1rem}
 
 /* header */
-header{position:relative; background:var(--metsa); color:var(--savu); border-radius:1.2rem; overflow:hidden;
-  padding:1.3rem 1.6rem 1.5rem; box-shadow:var(--shadow)}
+header{position:relative; flex:0 0 auto; background:var(--metsa); color:var(--savu); border-radius:1.1rem; overflow:hidden;
+  padding:1.1rem 1.4rem 1.25rem; box-shadow:var(--shadow)}
 header::after{content:""; position:absolute; left:0; right:0; bottom:0; height:.3rem;
   background:linear-gradient(90deg,var(--punainen) 0%,var(--oranssi) 42%,var(--kulta) 100%)}
 .htop{display:flex; align-items:center; gap:1rem}
-.brandtag{font-size:.82rem; letter-spacing:.3em; text-transform:uppercase; color:var(--kulta); font-weight:700}
-h1{font-size:2.3rem; font-weight:800; line-height:1; letter-spacing:-.015em; margin-top:.3rem}
+.brandtag{font-size:.78rem; letter-spacing:.3em; text-transform:uppercase; color:var(--kulta); font-weight:700}
+h1{font-size:2rem; font-weight:800; line-height:1; letter-spacing:-.015em; margin-top:.3rem}
 h1 .n{color:var(--kulta)}
 .hstatus{margin-left:auto; text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:.35rem}
-.live{display:flex; align-items:center; gap:.45rem; font-size:.78rem; font-weight:800; letter-spacing:.22em; color:var(--kulta)}
-.eq{display:inline-flex; align-items:flex-end; gap:.16rem; height:1.05rem}
+.live{display:flex; align-items:center; gap:.45rem; font-size:.75rem; font-weight:800; letter-spacing:.22em; color:var(--kulta)}
+.eq{display:inline-flex; align-items:flex-end; gap:.16rem; height:1rem}
 .eq i{width:.22rem; border-radius:1rem; background:linear-gradient(var(--kulta),var(--oranssi)); animation:eq 1.1s ease-in-out infinite}
 .eq i:nth-child(1){height:.4rem; animation-delay:-.9s; background:linear-gradient(var(--kulta),var(--punainen))}
-.eq i:nth-child(2){height:.9rem; animation-delay:-.5s}
+.eq i:nth-child(2){height:.85rem; animation-delay:-.5s}
 .eq i:nth-child(3){height:.6rem; animation-delay:-.2s; background:linear-gradient(var(--oranssi),var(--punainen))}
-.eq i:nth-child(4){height:1rem; animation-delay:-.7s}
+.eq i:nth-child(4){height:.95rem; animation-delay:-.7s}
 @keyframes eq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
-.updated{font-size:.9rem; color:rgba(249,243,230,.82); font-weight:500}
+.updated{font-size:.85rem; color:rgba(249,243,230,.82); font-weight:500}
 @media (prefers-reduced-motion:reduce){.eq i{animation:none}}
 
-/* grid of tickets */
-.grid{margin-top:1.4rem; display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1.1rem; align-content:start}
-.tk{background:#fff; border-radius:1rem; box-shadow:var(--shadow); padding:1.05rem 1.15rem; border-top:.34rem solid var(--punainen);
-  display:flex; flex-direction:column; gap:.45rem; animation:pop .25s ease both}
-@keyframes pop{from{opacity:0; transform:translateY(.6rem)}to{opacity:1; transform:none}}
-.tk-top{display:flex; align-items:center; gap:.5rem; flex-wrap:wrap}
-.tk-status{font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#fff; background:var(--punainen); padding:.24rem .62rem; border-radius:999px}
-.tk-flag{font-size:.7rem; font-weight:800; letter-spacing:.04em; color:#fff; background:var(--rusko); padding:.24rem .55rem; border-radius:999px}
-.tk-id{font-size:.82rem; color:#a49f92; font-weight:700; margin-left:auto}
-.tk-title{font-weight:800; font-size:1.25rem; line-height:1.15; color:var(--ink)}
-.tk-desc{font-size:.96rem; color:#6f6b61; line-height:1.35; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden}
-.tk-meta{margin-top:auto; padding-top:.3rem; font-size:.84rem; color:#8f8a7e; font-weight:600; display:flex; gap:.9rem; flex-wrap:wrap}
+/* kanban */
+.board{flex:1 1 auto; min-height:0; margin-top:1rem; display:flex; gap:.8rem; overflow-x:auto}
+.col{flex:1 1 0; min-width:min(24vw,290px); background:#fff; border-radius:1rem; box-shadow:var(--shadow);
+  display:flex; flex-direction:column; min-height:0; border-top:.34rem solid var(--c,#8f8a7e)}
+.col-h{flex:0 0 auto; display:flex; align-items:center; gap:.5rem; padding:.75rem .85rem; border-bottom:1px solid #eee3cd}
+.col-h .nm{font-weight:800; font-size:1rem; color:var(--ink); line-height:1.1}
+.col-h .ct{margin-left:auto; font-weight:800; font-size:.85rem; color:#fff; background:var(--c,#8f8a7e);
+  min-width:1.5rem; height:1.5rem; padding:0 .45rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center}
+.col-body{flex:1 1 auto; min-height:0; overflow-y:auto; padding:.7rem; display:flex; flex-direction:column; gap:.6rem}
+.col-empty{color:#bcae93; font-size:.85rem; text-align:center; padding:1.4rem .5rem; font-weight:600}
 
-/* states */
-.state{grid-column:1/-1; text-align:center; padding:4rem 1rem; color:#6f6b61}
-.state .big{font-size:4rem; margin-bottom:.6rem}
-.state .t{font-weight:800; font-size:1.9rem; color:var(--metsa)}
-.state.await .t{color:var(--meri)}
-.state .d{max-width:44rem; margin:.6rem auto 0; line-height:1.45; font-size:1.05rem}
-.state .btn{display:inline-block; margin-top:1.1rem; background:var(--metsa); color:var(--savu); text-decoration:none; font-weight:800; font-size:1.05rem; padding:.8rem 1.6rem; border-radius:999px}
+.tk{background:#fbf7ee; border-radius:.7rem; padding:.6rem .7rem; border-left:.28rem solid var(--c,#8f8a7e); display:flex; flex-direction:column; gap:.28rem}
+.tk-top{display:flex; align-items:center; gap:.4rem}
+.tk-id{font-size:.72rem; color:#a49f92; font-weight:700}
+.tk-flag{font-size:.64rem; font-weight:800; color:#fff; background:var(--rusko); padding:.16rem .42rem; border-radius:999px; margin-left:auto}
+.tk-title{font-weight:800; font-size:1rem; line-height:1.15; color:var(--ink)}
+.tk-desc{font-size:.82rem; color:#6f6b61; line-height:1.3; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+.tk-meta{font-size:.74rem; color:#9a958a; font-weight:600; display:flex; gap:.6rem; flex-wrap:wrap}
+
+.state{margin:auto; text-align:center; color:#6f6b61; padding:3rem 1rem}
+.state .big{font-size:3.4rem; margin-bottom:.5rem}
+.state .t{font-weight:800; font-size:1.6rem; color:var(--meri)}
+.state .d{max-width:40rem; margin:.5rem auto 0; line-height:1.4}
+.state .btn{display:inline-block; margin-top:1rem; background:var(--metsa); color:var(--savu); text-decoration:none; font-weight:800; padding:.7rem 1.4rem; border-radius:999px}
 .spin{display:inline-block; width:1rem; height:1rem; border:.2rem solid #d8cfba; border-top-color:var(--oranssi); border-radius:50%; animation:sp .8s linear infinite; vertical-align:-.15rem}
 @keyframes sp{to{transform:rotate(360deg)}}
 </style>
@@ -72,7 +76,7 @@ h1 .n{color:var(--kulta)}
     <div class="htop">
       <div>
         <div class="brandtag">Kaiku 2026 · Operaatiokeskus</div>
-        <h1>Uudet tiketit <span class="n">· Opke/Ospa</span></h1>
+        <h1>Tiketit <span class="n">· Opke/Ospa</span></h1>
       </div>
       <div class="hstatus">
         <div class="live"><span class="eq"><i></i><i></i><i></i><i></i></span> LIVE · 60 s</div>
@@ -80,7 +84,7 @@ h1 .n{color:var(--kulta)}
       </div>
     </div>
   </header>
-  <div class="grid" id="grid">
+  <div class="board" id="board">
     <div class="state"><div class="big"><span class="spin"></span></div><div class="t">Ladataan…</div></div>
   </div>
 </div>
@@ -88,49 +92,54 @@ h1 .n{color:var(--kulta)}
 <script>
 const API = '/api/tickets';
 const SP_URL = 'https://partio.sharepoint.com/sites/Tiketin/Lists/OpkeOspa/AllItems.aspx?viewid=6ab91000-1635-4e47-b2a8-cb248f338cff';
+const BUCKET_COLORS = {
+  'Uusi':'#FF633A', 'Käsittelemättömät':'#FF8940', 'Odottaa myöhempää käsittelyä':'#FFAE40',
+  'Käsittelyssä operaatiokeskuksessa':'#005448', 'Käsittelyssä muilla':'#00445E',
+  'Valmis':'#7a9b6f', 'Ei käsitellä':'#542337'
+};
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function fmt(iso){ if(!iso) return ''; const d=new Date(iso); return `${d.getDate()}.${d.getMonth()+1}. klo ${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`; }
+function fmt(iso){ if(!iso) return ''; const d=new Date(iso); return `${d.getDate()}.${d.getMonth()+1}. ${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`; }
 
 function ticketCard(t){
-  const meta = [
-    t.topic ? `🏷️ ${esc(t.topic)}` : '',
-    t.location ? `📍 ${esc(t.location)}` : '',
-    t.reporter ? `👤 ${esc(t.reporter)}` : '',
-    t.created ? `🕓 ${fmt(t.created)}` : ''
-  ].filter(Boolean).map(m=>`<span>${m}</span>`).join('');
+  const meta = [ t.location?`📍 ${esc(t.location)}`:'', t.reporter?`👤 ${esc(t.reporter)}`:'', t.created?`🕓 ${fmt(t.created)}`:'' ]
+    .filter(Boolean).map(m=>`<span>${m}</span>`).join('');
   return `<div class="tk">
-    <div class="tk-top"><span class="tk-status">Uusi</span>${t.safety?'<span class="tk-flag">⚠️ Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
+    <div class="tk-top"><span class="tk-id">#${esc(t.id)}</span>${t.safety?'<span class="tk-flag">⚠️ Turvallisuus</span>':''}</div>
     <div class="tk-title">${esc(t.title)}</div>
     ${t.desc?`<div class="tk-desc">${esc(t.desc)}</div>`:''}
-    <div class="tk-meta">${meta}</div>
+    ${meta?`<div class="tk-meta">${meta}</div>`:''}
   </div>`;
 }
 function render(data){
-  const grid = document.getElementById('grid');
+  const board = document.getElementById('board');
   const upd = document.getElementById('updated');
   if(data.status==='ok'){
     upd.textContent = 'Päivitetty ' + fmt(data.updatedAt);
-    if(!data.tickets.length){
-      grid.innerHTML = `<div class="state"><div class="big">🎉</div><div class="t">Ei uusia tikettejä</div><div class="d">Kaikki uudet tiketit on käsitelty.</div></div>`;
-    } else {
-      grid.innerHTML = data.tickets.map(ticketCard).join('');
-    }
+    board.innerHTML = (data.buckets||[]).map(b=>{
+      const c = BUCKET_COLORS[b.name] || '#8f8a7e';
+      const body = b.tickets.length ? b.tickets.map(ticketCard).join('') : `<div class="col-empty">Ei tikettejä</div>`;
+      return `<div class="col" style="--c:${c}">
+        <div class="col-h"><span class="nm">${esc(b.name)}</span><span class="ct">${b.count}</span></div>
+        <div class="col-body">${body}</div>
+      </div>`;
+    }).join('');
   } else if(data.status==='awaiting-login'){
     upd.textContent = 'Odottaa kirjautumista';
-    grid.innerHTML = `<div class="state await"><div class="big">🔒</div><div class="t">Kirjaudu SharePointiin</div>
+    board.innerHTML = `<div class="state"><div class="big">🔒</div><div class="t">Kirjaudu SharePointiin</div>
       <div class="d">Palvelin avasi selainikkunan Tiketin-sivustolle. Kirjaudu siinä partio-tunnuksilla — tiketit ilmestyvät tähän automaattisesti minuutin sisällä.</div>
       <a class="btn" href="${SP_URL}" target="_blank" rel="noopener">Avaa kirjautuminen ↗</a></div>`;
+  } else if(data.status==='error'){
+    upd.textContent = 'Virhe';
+    board.innerHTML = `<div class="state"><div class="big">⚠️</div><div class="t">Tikettejä ei saatu</div><div class="d">${esc(data.error||'')}</div></div>`;
   } else {
     upd.textContent = 'Käynnistetään…';
   }
 }
 async function tick(){
-  try{
-    const r = await fetch(API, {cache:'no-store'});
-    render(await r.json());
-  }catch(e){
+  try{ const r = await fetch(API, {cache:'no-store'}); render(await r.json()); }
+  catch(e){
     document.getElementById('updated').textContent = 'Palvelin ei vastaa';
-    document.getElementById('grid').innerHTML = `<div class="state"><div class="big">🔌</div><div class="t">Palvelinta ei tavoiteta</div><div class="d">Käynnistä tiketti-palvelin: <code>npm start</code> kansiossa <code>ticket-server</code>.</div></div>`;
+    document.getElementById('board').innerHTML = `<div class="state"><div class="big">🔌</div><div class="t">Palvelinta ei tavoiteta</div><div class="d">Käynnistä tiketti-palvelin: <code>npm start</code> kansiossa <code>ticket-server</code>.</div></div>`;
   }
 }
 tick();
