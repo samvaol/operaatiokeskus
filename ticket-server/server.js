@@ -45,11 +45,13 @@ const STATUS_ORDER = ['Uusi', 'Käsittelemättömät', 'Odottaa myöhempää kä
 const FORM_SITE = 'https://partio.sharepoint.com/sites/UudenmaanPiirileiri2026';
 const FORM_DOC_ID = process.env.FORM_DOC_ID || '2fdda7e3-7548-48b4-b6fe-2cfbce158960';
 const FORM_URL = `${FORM_SITE}/_api/web/GetFileById('${FORM_DOC_ID}')/$value`;
+// Näkyvä työkirjalinkki, joka avataan kirjautumista/oikeuksia varten (ja lataa FedAuthin).
+const FORM_DOC_URL = `${FORM_SITE}/_layouts/15/doc2.aspx?sourcedoc=%7B${FORM_DOC_ID.toUpperCase()}%7D&file=Osallistujaviestint%C3%A4.xlsx&action=edit&mobileredirect=true`;
 const FORM_COUNT = 3; // montako viimeisintä viestiä näytetään
 
 // --- palvelimen tila (välimuisti dashboardille) ---
 const state = { status: 'starting', buckets: [], uusi: [], count: 0, updatedAt: null, error: null, lastHttp: null };
-const formState = { status: 'starting', entries: [], updatedAt: null, error: null, lastHttp: null };
+const formState = { status: 'starting', entries: [], updatedAt: null, error: null, lastHttp: null, diag: null };
 let context = null;
 let fieldMap = null; // { internalName: displayTitle }
 
@@ -145,15 +147,17 @@ async function requestJson(url) {
 // status ei riitä — hylätään text/html-vastaukset (ne eivät ole työkirja).
 async function requestBuffer(url) {
   let lastStatus = 0;
+  const diag = [];
   // varmista lomakkeen sivustokokoelman kirjautuminen ennen latausta
   await ensureFormPage().catch(() => {});
   // 1) context.request — jakaa selainkontekstin evästeet
   try {
     const r = await context.request.get(url, { timeout: 30000 });
     const ct = String(r.headers()['content-type'] || '');
-    if (r.status() === 200 && !ct.includes('text/html')) return { ok: true, status: 200, buf: await r.body() };
+    diag.push(`context.request → ${r.status()} ${ct.split(';')[0]}`);
+    if (r.status() === 200 && !ct.includes('text/html')) { formState.diag = diag.join(' | '); return { ok: true, status: 200, buf: await r.body() }; }
     lastStatus = r.status() === 200 ? 401 : r.status(); // 200+HTML ≈ kirjautumissivu
-  } catch (_) { /* jatka varareittiin */ }
+  } catch (e) { diag.push(`context.request virhe: ${String((e && e.message) || e).slice(0, 80)}`); }
   // 2) varareitti: palvelimen kirjautunut taustasivu LOMAKKEEN sivustolla (same-origin fetch → base64)
   try {
     const p = await ensureFormPage();
@@ -161,15 +165,17 @@ async function requestBuffer(url) {
       try {
         const r = await fetch(u, { credentials: 'include' });
         const ct = r.headers.get('content-type') || '';
-        if (r.status !== 200 || ct.includes('text/html')) return { ok: false, status: r.status === 200 ? 401 : r.status };
+        if (r.status !== 200 || ct.includes('text/html')) return { ok: false, status: r.status === 200 ? 401 : r.status, ct: ct.split(';')[0] };
         const bytes = new Uint8Array(await r.arrayBuffer());
         let bin = ''; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
         return { ok: true, status: 200, b64: btoa(bin) };
-      } catch (e) { return { ok: false, status: 0 }; }
+      } catch (e) { return { ok: false, status: 0, err: String(e && e.message || e).slice(0, 80) }; }
     }, url);
+    diag.push(`page.fetch → ${out ? out.status : '?'} ${out && (out.ct || out.err) || ''}`.trim());
+    formState.diag = diag.join(' | ');
     if (out && out.ok) return { ok: true, status: 200, buf: Buffer.from(out.b64, 'base64') };
     return { ok: false, status: (out && out.status) || lastStatus };
-  } catch (_) { return { ok: false, status: lastStatus }; }
+  } catch (e) { diag.push(`page.fetch virhe: ${String((e && e.message) || e).slice(0, 80)}`); formState.diag = diag.join(' | '); return { ok: false, status: lastStatus }; }
 }
 
 // --- pieni xlsx-lukija (zip + XML), ei riippuvuuksia ---
@@ -331,15 +337,18 @@ async function pollForm() {
     const res = await requestBuffer(FORM_URL);
     if (!res.ok) {
       formState.lastHttp = res.status;
-      if (res.status === 404) { formState.status = 'error'; formState.error = 'Tiedostoa ei löytynyt (404).'; }
+      if (res.status === 404) { formState.status = 'error'; formState.error = 'Tiedostoa ei löytynyt (404). Tarkista tiedoston GUID (FORM_DOC_ID).'; }
       else { formState.status = 'awaiting-login'; formState.error = null; }
-      console.log(`[form] ${res.status === 404 ? 'tiedosto puuttuu' : 'ei kirjautunut'} (HTTP ${res.status}) — kirjaudu UudenmaanPiirileiri2026-sivustolle`);
+      console.log(`[form] ${res.status === 404 ? 'TIEDOSTO PUUTTUU (404) — väärä GUID?' : 'EI KIRJAUTUNUT/EI OIKEUKSIA'} (HTTP ${res.status})`);
+      console.log(`[form] diag: ${formState.diag || '-'}`);
+      console.log(`[form] → avaa tämä työkirja selaimessa ja tarkista pääsy: ${FORM_DOC_URL}`);
       return;
     }
     // Varmista että lataus on aito xlsx (zip: PK\x03\x04) — muutoin se on esim. kirjautumissivu.
     if (!(res.buf.length >= 4 && res.buf.readUInt32BE(0) === 0x504b0304)) {
       formState.status = 'awaiting-login'; formState.error = null; formState.lastHttp = 401;
-      console.log(`[form] vastaus ei ollut xlsx-tiedosto (${res.buf.length} tavua) — todennäk. kirjautumissivu; kirjaudu UudenmaanPiirileiri2026-sivustolle`);
+      console.log(`[form] vastaus ei ollut xlsx-tiedosto (${res.buf.length} tavua) — todennäk. kirjautumissivu.`);
+      console.log(`[form] diag: ${formState.diag || '-'} → avaa ja kirjaudu: ${FORM_DOC_URL}`);
       return;
     }
     const entries = extractForm(unzip(res.buf));
@@ -400,7 +409,8 @@ app.get('/api/tickets', (_req, res) => res.json({
   buckets: state.buckets, uusi: state.uusi, tickets: state.uusi, error: state.error
 }));
 app.get('/api/form', (_req, res) => res.json({
-  status: formState.status, updatedAt: formState.updatedAt, entries: formState.entries, error: formState.error
+  status: formState.status, updatedAt: formState.updatedAt, entries: formState.entries,
+  error: formState.error, lastHttp: formState.lastHttp, diag: formState.diag
 }));
 app.get('/api/health', (_req, res) => res.json({
   status: state.status, updatedAt: state.updatedAt, count: state.count, uusi: state.uusi.length, lastHttp: state.lastHttp,
@@ -415,16 +425,22 @@ const start = async () => {
     viewport: { width: 1280, height: 900 },
     args: ['--no-first-run']
   });
-  // kirjautumissivu (käyttäjää varten) – pollausta ei ajeta tästä
+  // 1) Tiketin-sivuston kirjautumissivu (tiketit)
   const page = context.pages()[0] || await context.newPage();
   await page.goto(STATUS_URL, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
-  if (!HEADLESS) { try { await page.bringToFront(); } catch (_) {} }
+  // 2) Osallistujaviestintä-lomakkeen sivusto (ERI sivustokokoelma → oma FedAuth).
+  //    Avataan NÄKYVÄNÄ etualalle, jotta mahdollinen kirjautuminen/oikeuspyyntö näkyy.
+  formPage = await context.newPage();
+  await formPage.goto(FORM_DOC_URL, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+  if (!HEADLESS) { try { await formPage.bringToFront(); } catch (_) {} }
   context.on('close', () => { console.log('Selainkonteksti suljettiin — käynnistä palvelin uudelleen (npm start).'); process.exit(0); });
 
   app.listen(PORT, () => {
     console.log(`\n  Tiketti-palvelin:  http://localhost:${PORT}`);
-    console.log(`  JSON-rajapinta:    http://localhost:${PORT}/api/tickets`);
-    console.log(`  → Kirjaudu avautuneessa selainikkunassa partio-tunnuksilla.\n`);
+    console.log(`  Tiketit:           http://localhost:${PORT}/api/tickets`);
+    console.log(`  Osallistujaviest.: http://localhost:${PORT}/api/form`);
+    console.log(`  → Selain avasi KAKSI välilehteä: kirjaudu molempiin partio-tunnuksilla`);
+    console.log(`    (Tiketin-sivusto JA UudenmaanPiirileiri2026 / Osallistujaviestintä-työkirja).\n`);
   });
 
   await poll();
