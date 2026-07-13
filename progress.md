@@ -56,19 +56,40 @@ Hosted at <https://github.com/samvaol/operaatiokeskus>.
   and mapping columns to who/subject/message/extras by header. Refreshed every 60 s (live).
   The startup is guarded by `require.main === module` so the parser can be unit-tested without
   launching Playwright (`module.exports` exposes the helpers).
+- **Cross-site-collection auth fix (c2b63d8):** the workbook is on a *different* site collection
+  than the Tiketin login, and SharePoint's `FedAuth` cookie is per site collection — so the first
+  version silently returned empty. `ensureFormPage` now warms `FORM_SITE` with a real page visit
+  (SSO handshake), and the download rejects `text/html` + verifies the zip magic `PK\x03\x04`
+  (an unauth SharePoint request returns the sign-in HTML with HTTP 200). See gotchas below.
 - **Needs live verification** against a logged-in SharePoint session (restart the server to
   load new code). Verified locally: syntax, endpoints, `awaiting-login` fallback; REST list
   paths return 403 unauth (valid).
 
 ### Design
 - Kaiku 2026 V1 identity throughout (Bricolage Grotesque; metsä/savu + punainen/oranssi/
-  kulta). Coordinated per-panel accent system, accent icon-chips, layered shadows,
-  Kaiku-1 gradient header edge (replaced the disliked stretched aaltoviiva — do not re-add).
+  kulta). Kaiku-1 gradient header edge (replaced the disliked stretched aaltoviiva — do not re-add).
+- **Anti-"vibe-coded" polish pass:** replaced the per-card rainbow top-stripe with a disciplined
+  4-role colour system (kulta=camp heartbeat, meri=environment, punainen=attention, metsä=
+  structural), plain white cards with a hairline + soft shadow, and a curated inline-SVG icon
+  set (sprite of `<symbol>`s + `mi()` helper) replacing emoji chrome. Emoji kept only as data
+  glyphs (weather symbols, schedule category markers). Solid-gold progress bar.
+- **Second pass (brand-icon fidelity):** icons rebuilt in the Kaiku **"Symboli" idiom** — solid
+  accent-colour **circular** header chips with **bold rounded** marks (not thin generic lines).
+  **Removed the "LIVE" indicators entirely** (header badge + the news "● Live" dot) — they read
+  vibe-coded; liveness = the ticking clock + "Päivitetty HH.MM" per card. Schedule recoloured
+  **by state** (now=punainen / next=kulta / neutral) with a clean left-border, which also fixed
+  the notched corners and stopped it from mixing Kaiku-1 & Kaiku-2 colours (a brand no-no).
+  Fire banner uses `#i-flame` / `#i-shield` instead of 🔥/✅.
 
 ## Key decisions / gotchas
 - **SharePoint can't be read from the browser directly** — `Access-Control-Allow-Origin: *`
   without `Access-Control-Allow-Credentials` blocks the auth cookie cross-origin, and the
   list page sets `X-Frame-Options` (no iframe). Hence the separate `ticket-server`.
+- **SharePoint `FedAuth` is per SITE COLLECTION**, not tenant-wide — one login does not authorize
+  another site collection's files. Warm each site collection with a real page visit first.
+- **An unauthenticated SharePoint request returns the sign-in HTML with HTTP 200**, not a 401 —
+  binary downloads must reject `text/html` and verify the xlsx zip magic, or a login page parses
+  to an empty (but "ok") result.
 - **kuosi pattern** must use a wide viewBox (`0 0 1920 220`) or it scales ~5× on a TV.
 - Preview screenshots render at ~½ size here due to devicePixelRatio 2 — trust DOM
   measurements over screenshots.

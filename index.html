@@ -16,10 +16,14 @@
   --metsa:#005448; --meri:#00445E; --rusko:#542337; --savu:#F9F3E6;
   --punainen:#FF633A; --oranssi:#FF8940; --kulta:#FFAE40;
   --magenta:#FF546E; --laventeli:#F0A6CF; --sininen:#6CB7E5;
-  --ink:#2a2a26;
+  --ink:#243029;          /* päävärimusta, hieman metsä-vivahteinen */
+  --ink-2:#5f6b60;        /* toissijainen teksti */
+  --ink-3:#9aa39a;        /* vaimennettu / metatieto */
   --card:#fff;
-  --shadow:0 1px 2px rgba(0,40,55,.05), 0 .7rem 1.8rem rgba(0,40,55,.09);
-  --radius:1.15rem;
+  --line:#e8e0cf;         /* yhtenäinen hiusviiva (lämmin) */
+  /* Väriroolit: kulta=leirin sydän, meri=ympäristö, punainen=huomio, metsä=rakenne */
+  --shadow:0 1px 2px rgba(20,40,32,.05), 0 6px 18px rgba(20,40,32,.06);
+  --radius:1rem;
   --head:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -50,20 +54,6 @@ header::after{content:""; position:absolute; left:0; right:0; bottom:0; height:.
 .clockbox{flex:0 0 auto; text-align:right; display:flex; flex-direction:column; align-items:flex-end}
 .clockbox .time{font-size:3.2rem; font-weight:800; line-height:.92; font-variant-numeric:tabular-nums; letter-spacing:-.01em}
 .clockbox .date{font-size:1rem; color:rgba(249,243,230,.82); font-weight:500; text-transform:capitalize; margin-top:.15rem}
-/* Signature: kaiku-taajuuskorjain = elävä signaali / operaatiokeskuksen "kaiku" */
-.live{display:flex; align-items:center; gap:.45rem; font-size:.78rem; font-weight:800; letter-spacing:.22em;
-  color:var(--kulta); margin-bottom:.3rem}
-.live::before{content:""; width:.5rem; height:.5rem; border-radius:50%; background:var(--punainen);
-  box-shadow:0 0 0 0 rgba(255,99,58,.6); animation:beat 1.6s ease-out infinite}
-.eq{display:inline-flex; align-items:flex-end; gap:.16rem; height:1.05rem}
-.eq i{width:.22rem; border-radius:1rem; background:linear-gradient(var(--kulta),var(--oranssi)); animation:eq 1.1s ease-in-out infinite}
-.eq i:nth-child(1){height:.4rem; animation-delay:-.9s; background:linear-gradient(var(--kulta),var(--punainen))}
-.eq i:nth-child(2){height:.9rem; animation-delay:-.5s}
-.eq i:nth-child(3){height:.6rem; animation-delay:-.2s; background:linear-gradient(var(--oranssi),var(--punainen))}
-.eq i:nth-child(4){height:1rem; animation-delay:-.7s}
-@keyframes eq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
-@keyframes beat{0%{box-shadow:0 0 0 0 rgba(255,99,58,.6)}70%,100%{box-shadow:0 0 0 .5rem rgba(255,99,58,0)}}
-@media (prefers-reduced-motion:reduce){.eq i{animation:none}.live::before{animation:none}}
 
 /* ===== Runko: 3 saraketta ===== */
 main{
@@ -72,23 +62,24 @@ main{
 }
 .col{display:flex; flex-direction:column; gap:1.1rem; min-height:0}
 .card{
-  --accent:var(--oranssi);
+  --accent:var(--metsa);
   position:relative; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
-  padding:1.15rem 1.25rem 1.2rem; display:flex; flex-direction:column; min-height:0;
-  border-top:.28rem solid var(--accent);
+  border:1px solid var(--line);
+  padding:1.1rem 1.2rem 1.15rem; display:flex; flex-direction:column; min-height:0;
 }
-.card.dark{background:var(--meri); color:var(--savu)}
-.card.forest{background:var(--metsa); color:var(--savu)}
-/* värikoodattu komentokonsoli – kukin paneeli oma Kaiku-sävynsä */
+.card.dark{background:var(--meri); color:var(--savu); border-color:transparent}
+.card.forest{background:var(--metsa); color:var(--savu); border-color:transparent}
+/* Väri kantaa merkitystä, ei koristele: kulta=leirin sydän, meri=ympäristö,
+   punainen=vaatii huomiota, metsä=rakenteellinen/informatiivinen. */
 .card.timer{--accent:var(--kulta)}
 .card.weather{--accent:var(--meri)}
-.card.shift{--accent:var(--rusko)}
-.card.sched{--accent:var(--oranssi)}
-.card.news{--accent:var(--punainen)}
-.card.tickets{--accent:var(--punainen)}
 .card.radar{--accent:var(--meri)}
+.card.tickets{--accent:var(--punainen)}   /* uudet tiketit = huomio */
+.card.shift{--accent:var(--metsa)}
+.card.sched{--accent:var(--metsa)}
+.card.news{--accent:var(--metsa)}
 .card.ops{--accent:var(--metsa)}
-.card.msgform{--accent:var(--magenta)}
+.card.msgform{--accent:var(--metsa)}
 
 /* ===== Uudet tiketit -paneeli ===== */
 .tickets{min-height:0}
@@ -103,6 +94,7 @@ main{
 .utk .u-meta{font-size:.76rem; color:#9a958a; font-weight:600}
 .tickets .allzero{margin:auto; text-align:center; color:var(--metsa); font-weight:800; font-size:1.15rem; padding:1.2rem .5rem}
 .tickets .allzero .big{font-size:2.6rem; display:block; margin-bottom:.3rem}
+.allzero .big svg{width:2.3rem; height:2.3rem; fill:none; stroke:var(--metsa); stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round}
 
 /* ===== Käynnissä olevat operaatiot ===== */
 .ops{min-height:0}
@@ -161,17 +153,22 @@ main{
 .bkt-h::after{content:""; flex:1 1 auto; height:2px; background:var(--c,#8f8a7e); opacity:.25; border-radius:2px}
 .bkt-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.8rem}
 .bkt .tk{border-top-color:var(--c,var(--punainen))}
-.card-h{display:flex; align-items:center; gap:.6rem; margin-bottom:.9rem; padding-bottom:.7rem;
-  border-bottom:1px solid #eee3cd; flex:0 0 auto}
-.card.dark .card-h,.card.forest .card-h{border-bottom-color:rgba(249,243,230,.16)}
-.card-h .ic{flex:0 0 auto; width:2.1rem; height:2.1rem; display:grid; place-items:center; border-radius:.6rem;
-  font-size:1.2rem; line-height:1; background:color-mix(in srgb,var(--accent) 15%,#fff);
-  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
-.card.dark .card-h .ic,.card.forest .card-h .ic{background:rgba(249,243,230,.12); box-shadow:inset 0 0 0 1.5px rgba(255,174,64,.45)}
-.card-h h2{font-size:1.02rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; color:var(--metsa)}
-.card.dark .card-h h2,.card.forest .card-h h2{color:var(--kulta)}
-.card-h .sub{margin-left:auto; font-size:.85rem; font-weight:700; color:var(--accent)}
-.card.dark .card-h .sub{color:rgba(249,243,230,.7)}
+.card-h{display:flex; align-items:center; gap:.6rem; margin-bottom:.85rem; padding-bottom:.65rem;
+  border-bottom:1px solid var(--line); flex:0 0 auto}
+.card.dark .card-h,.card.forest .card-h{border-bottom-color:rgba(249,243,230,.14)}
+/* Ikonimerkki = Kaikun "Symboli"-pyöreä: värillinen ympyrä, paksu pyöreä merkki */
+.card-h .ic{flex:0 0 auto; width:2.15rem; height:2.15rem; display:grid; place-items:center; border-radius:50%;
+  background:var(--accent)}
+.card-h .ic svg{width:1.25rem; height:1.25rem; fill:none; stroke:#fff;
+  stroke-width:2.3; stroke-linecap:round; stroke-linejoin:round}
+.card.timer .card-h .ic svg{stroke:var(--metsa)}   /* kulta ympyrä → tumma merkki kontrastin vuoksi */
+.card.dark .card-h .ic,.card.forest .card-h .ic{background:var(--kulta)}
+.card.dark .card-h .ic svg,.card.forest .card-h .ic svg{stroke:var(--metsa)}
+/* Otsikkotypografia: tasainen, hillitty versaali-nimiö */
+.card-h h2{font-size:.92rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink)}
+.card.dark .card-h h2,.card.forest .card-h h2{color:var(--savu)}
+.card-h .sub{margin-left:auto; font-size:.82rem; font-weight:600; color:var(--ink-3)}
+.card.dark .card-h .sub,.card.forest .card-h .sub{color:rgba(249,243,230,.6)}
 
 /* ===== Leirikello (timer) ===== */
 .timer{position:relative; overflow:hidden}
@@ -186,7 +183,7 @@ main{
 .tunit.sec .n{color:var(--kulta)}
 .tbar{margin-top:.55rem}
 .tbar .track{height:.7rem; border-radius:1rem; background:rgba(249,243,230,.15); overflow:hidden}
-.tbar .fill{height:100%; border-radius:1rem; background:linear-gradient(90deg,var(--kulta),var(--oranssi),var(--punainen))}
+.tbar .fill{height:100%; border-radius:1rem; background:var(--kulta); transition:width .6s ease}
 .tbar .meta{display:flex; justify-content:space-between; font-size:.8rem; color:rgba(249,243,230,.78); margin-top:.4rem; font-weight:500}
 
 /* ===== Sää ===== */
@@ -210,7 +207,8 @@ main{
   margin-top:.9rem; border-radius:.8rem; padding:.75rem .9rem; display:flex; align-items:center; gap:.7rem;
   font-weight:700; font-size:1rem;
 }
-.fire .fic{font-size:1.6rem; line-height:1}
+.fire .fic{flex:0 0 auto; line-height:1; display:grid; place-items:center}
+.fire .fic svg{width:1.5rem; height:1.5rem; fill:none; stroke:currentColor; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round}
 .fire.ok{background:rgba(0,84,72,.10); color:var(--metsa)}
 .fire.warn{background:var(--punainen); color:#fff; animation:pulse 2.4s ease-in-out infinite}
 .fire .sml{display:block; font-weight:500; font-size:.82rem; opacity:.85}
@@ -219,22 +217,26 @@ main{
 /* ===== Aikataulu ===== */
 .sched{flex:1 1 auto; min-height:0}
 .sched .list{overflow:hidden; display:flex; flex-direction:column; gap:.55rem; flex:1 1 auto; min-height:0}
+/* Tila-ohjattu väri (ei kategoriakohtaista sateenkaarta): nyt=punainen, seuraava=kulta,
+   muut=neutraali. Vasen reuna paksuna reunuksena → pyöristyy siististi (ei kulmapoikkeamaa). */
 .ev{
-  position:relative; background:#fff; border:1px solid #efe6d3; border-radius:.85rem;
-  padding:.6rem .8rem .6rem 1rem; display:flex; gap:.85rem; align-items:center; overflow:hidden;
+  position:relative; background:#fff; border:1px solid var(--line); border-left:.32rem solid var(--line);
+  border-radius:.7rem; padding:.6rem .85rem .6rem .95rem; display:flex; gap:.85rem; align-items:center; overflow:hidden;
 }
-.ev::before{content:""; position:absolute; left:0; top:0; bottom:0; width:.4rem; background:var(--accent,var(--oranssi))}
-.ev .time{flex:0 0 auto; min-width:5.4rem; font-weight:800; font-size:1.05rem; color:var(--accent,var(--metsa)); font-variant-numeric:tabular-nums}
+.ev .time{flex:0 0 auto; min-width:5.4rem; font-weight:800; font-size:1.05rem; color:var(--ink-2); font-variant-numeric:tabular-nums}
 .ev .emoji{font-size:1.5rem; flex:0 0 auto}
 .ev .body{flex:1 1 auto; min-width:0}
 .ev .t{font-weight:700; font-size:1.12rem; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.ev .d{font-size:.85rem; color:#7a766c; margin-top:.05rem}
+.ev .d{font-size:.85rem; color:var(--ink-3); margin-top:.05rem; display:flex; align-items:center}
 .ev .tag{flex:0 0 auto; font-size:.72rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
-  padding:.28rem .55rem; border-radius:1rem}
-.ev.now{border-color:var(--punainen); box-shadow:0 0 0 .12rem var(--punainen)}
+  padding:.28rem .55rem; border-radius:.5rem}
+.ev.now{border-color:var(--punainen); border-left-color:var(--punainen)}
+.ev.now .time{color:var(--punainen)}
 .ev.now .tag{background:var(--punainen); color:#fff}
+.ev.next{border-left-color:var(--kulta)}
+.ev.next .time{color:var(--metsa)}
 .ev.next .tag{background:var(--kulta); color:var(--metsa)}
-.ev.past{opacity:.45}
+.ev.past{opacity:.5}
 .ev.done .t{text-decoration:line-through; text-decoration-color:#cfc7b4}
 
 /* ===== Uutiset ===== */
@@ -245,7 +247,7 @@ main{
 .art .thumb{flex:0 0 auto; width:7.5rem; height:5rem; border-radius:.7rem; overflow:hidden; background:#eadfca}
 .art .thumb img{width:100%; height:100%; object-fit:cover; display:block}
 .art .meta{flex:1 1 auto; min-width:0; display:flex; flex-direction:column}
-.art .kick{font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--punainen)}
+.art .kick{font-size:.75rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--metsa)}
 .art .at{font-weight:800; font-size:1.15rem; line-height:1.12; margin:.12rem 0 .18rem;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 .art .ax{font-size:.9rem; color:#6f6b61; line-height:1.28;
@@ -266,14 +268,25 @@ main{
 .shifttask .ic{font-size:1.3rem}
 .shifttask b{color:var(--metsa)}
 .shiftnext{margin-top:.7rem; font-size:.92rem; color:#7a766c; display:flex; align-items:center; gap:.5rem}
-.shiftnext .tg{font-weight:800; color:var(--oranssi)}
+.shiftnext .tg{font-weight:800; color:var(--metsa)}
+
+/* Metatiedon pienet ikonit (korvaavat emojit tiketti-/viesti-riveillä) */
+.mi{width:.92rem; height:.92rem; fill:none; stroke:currentColor; stroke-width:1.85;
+  stroke-linecap:round; stroke-linejoin:round; vertical-align:-.14rem; margin-right:.28rem; flex:0 0 auto}
+.shifttask .ti{width:1.2rem; height:1.2rem; fill:none; stroke:var(--metsa); stroke-width:1.85;
+  stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto}
+.modal-h .mt-ic{width:1.4rem; height:1.4rem; fill:none; stroke:currentColor; stroke-width:1.9;
+  stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto}
 
 /* ===== Tiketit-painike + popup ===== */
-.ticketbtn{flex:0 0 auto; align-self:center; cursor:pointer; font-family:var(--head); font-weight:800;
-  font-size:1rem; color:var(--metsa); background:var(--kulta); border:none; border-radius:999px;
-  padding:.6rem 1.2rem; display:inline-flex; align-items:center; gap:.5rem; line-height:1}
-.ticketbtn .badge{background:var(--punainen); color:#fff; font-size:.8rem; font-weight:800;
-  min-width:1.3rem; height:1.3rem; padding:0 .35rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center}
+.ticketbtn{flex:0 0 auto; align-self:center; cursor:pointer; font-family:var(--head); font-weight:700;
+  font-size:.95rem; color:var(--metsa); background:var(--kulta); border:none; border-radius:.7rem;
+  padding:.58rem 1.05rem; display:inline-flex; align-items:center; gap:.45rem; line-height:1}
+.ticketbtn .btn-ic{width:1.05rem; height:1.05rem; fill:none; stroke:var(--metsa); stroke-width:1.9;
+  stroke-linecap:round; stroke-linejoin:round}
+.ticketbtn .badge{background:var(--punainen); color:#fff; font-size:.78rem; font-weight:800;
+  min-width:1.25rem; height:1.25rem; padding:0 .35rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center}
+.ticketbtn:hover{background:#ffbe5e}
 .ticketbtn:active{transform:scale(.97)}
 
 .modal-backdrop{position:fixed; inset:0; z-index:900; background:rgba(0,68,94,.55); backdrop-filter:blur(3px);
@@ -316,13 +329,29 @@ main{
 .spin{display:inline-block; width:1rem; height:1rem; border:.18rem solid #d8cfba; border-top-color:var(--oranssi);
   border-radius:50%; animation:sp .8s linear infinite; vertical-align:-.15rem}
 @keyframes sp{to{transform:rotate(360deg)}}
-.dot{display:inline-block; width:.55rem; height:.55rem; border-radius:50%; background:var(--kulta); margin-right:.35rem}
-.live-off .dot{background:#c9c1ae}
 .hidden{display:none!important}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
+<!-- Kuratoitu viivaikonisto (yksi tyyli, sama viivanpaksuus) — korvaa emojit -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/></symbol>
+  <symbol id="i-shift" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.1"/><path d="M3.6 19.4a5.5 5.5 0 0 1 10.8 0"/><path d="M15.5 5.2a3.1 3.1 0 0 1 0 5.7"/><path d="M17 13.6a5.5 5.5 0 0 1 3.4 5"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h13A1.5 1.5 0 0 1 20 8.5a2 2 0 0 0 0 4A1.5 1.5 0 0 1 18.5 14h-13A1.5 1.5 0 0 1 4 12.5a2 2 0 0 0 0-4z"/><path d="M14 7.5v6" stroke-dasharray="1.3 2"/></symbol>
+  <symbol id="i-weather" viewBox="0 0 24 24"><circle cx="8" cy="8" r="2.5"/><path d="M8 3.6v1.1M3.6 8h1.1M4.9 4.9l.8.8M11.1 4.9l-.8.8"/><path d="M9.5 19h7.5a3.1 3.1 0 0 0 .3-6.2A4.5 4.5 0 0 0 8.7 12.2 3.4 3.4 0 0 0 9.5 19z"/></symbol>
+  <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.2"/><path d="M12 12 18.5 8.2"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-agenda" viewBox="0 0 24 24"><path d="M8.5 6.5h11M8.5 12h11M8.5 17.5h7"/><circle cx="4.6" cy="6.5" r="1"/><circle cx="4.6" cy="12" r="1"/><circle cx="4.6" cy="17.5" r="1"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h3.5l2.4-6.4 4 13 2.4-6.6H21"/></symbol>
+  <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M4 10.5v3a1 1 0 0 0 1 1h1.2l8.3 3.8V5.7L6.2 9.5H5a1 1 0 0 0-1 1z"/><path d="M17.5 9.5a4 4 0 0 1 0 5"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4.5 7.5 7.5 5.5 7.5-5.5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6-5.3 6-10a6 6 0 0 0-12 0c0 4.7 6 10 6 10z"/><circle cx="12" cy="11" r="2.2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M4 12.6V5.5A1.5 1.5 0 0 1 5.5 4h7.1a2 2 0 0 1 1.4.6l6 6a1.8 1.8 0 0 1 0 2.6l-5.8 5.8a1.8 1.8 0 0 1-2.6 0l-6-6A2 2 0 0 1 4 12.6z"/><circle cx="8.5" cy="8.5" r="1.2"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h12l-3-3M20 16H8l3 3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 3.5-4"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3s5 4 5 9a5 5 0 0 1-10 0c0-2 1-3.6 2.6-4.9C9 9 10.4 6.6 12 3z"/><path d="M12 20a2.3 2.3 0 0 0 2.3-2.3c0-1.4-1.1-2.1-2.3-3.4-1.2 1.3-2.3 2-2.3 3.4A2.3 2.3 0 0 0 12 20z"/></symbol>
+</svg>
 <div class="app">
 
   <!-- ===================== YLÄTUNNISTE ===================== -->
@@ -365,10 +394,9 @@ main{
         <h1 id="greeting">Hyvää päivää, <span class="who">Operaatiokeskus</span></h1>
       </div>
 
-      <button class="ticketbtn" id="openTickets" type="button">🎫 Tiketit <span class="badge" id="ticketBadge" hidden>0</span></button>
+      <button class="ticketbtn" id="openTickets" type="button"><svg class="btn-ic" aria-hidden="true"><use href="#i-ticket"/></svg>Tiketit <span class="badge" id="ticketBadge" hidden>0</span></button>
 
       <div class="clockbox">
-        <div class="live"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span> LIVE</div>
         <div class="time" id="clock">–.–.–</div>
         <div class="date" id="date">–</div>
       </div>
@@ -382,7 +410,7 @@ main{
       <div class="card forest timer" style="flex:0 0 auto">
         <svg class="kuosi" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="400" height="220" fill="url(#kp)"/></svg>
         <div class="inner">
-          <div class="card-h"><span class="ic">⏱️</span><h2>Leirikello</h2></div>
+          <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-clock"/></svg></span><h2>Leirikello</h2></div>
           <div class="phase" id="timerPhase">Leiri käynnissä</div>
           <div class="tunits">
             <div class="tunit"><div class="n" id="tD">0</div><div class="l">vrk</div></div>
@@ -398,12 +426,12 @@ main{
       </div>
 
       <div class="card shift" style="flex:0 0 auto">
-        <div class="card-h"><span class="ic">🦺</span><h2>Työvuorossa nyt</h2><span class="sub" id="shiftDay">–</span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-shift"/></svg></span><h2>Työvuorossa nyt</h2><span class="sub" id="shiftDay">–</span></div>
         <div id="shiftBody" class="muted">Ladataan työvuoroja…</div>
       </div>
 
       <div class="card tickets" style="flex:1 1 auto">
-        <div class="card-h"><span class="ic">🎫</span><h2>Uudet tiketit</h2><span class="sub" id="uusiStatus">–</span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-ticket"/></svg></span><h2>Uudet tiketit</h2><span class="sub" id="uusiStatus">–</span></div>
         <div class="scroller"><div class="track" id="uusiBody"><div class="muted">Ladataan tikettejä…</div></div></div>
       </div>
     </div>
@@ -411,12 +439,12 @@ main{
     <!-- SARAKE 2: sää + sadetutka -->
     <div class="col">
       <div class="card weather" style="flex:0 0 auto">
-        <div class="card-h"><span class="ic">🌤️</span><h2>Sää · Evo, Hämeenlinna</h2><span class="sub" id="wStatus"><span class="spin"></span></span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-weather"/></svg></span><h2>Sää · Evo, Hämeenlinna</h2><span class="sub" id="wStatus"><span class="spin"></span></span></div>
         <div id="weatherBody" class="muted">Ladataan säätietoja…</div>
       </div>
 
       <div class="card radar" style="flex:1 1 auto">
-        <div class="card-h"><span class="ic">🛰️</span><h2>Sadetutka · Evo</h2><span class="sub" id="radarStatus">FMI</span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-radar"/></svg></span><h2>Sadetutka · Evo</h2><span class="sub" id="radarStatus">FMI</span></div>
         <div class="radarwrap">
           <div id="radarmap"></div>
           <div class="radardot"></div>
@@ -428,11 +456,11 @@ main{
     <!-- SARAKE 3: aikataulu + käynnissä olevat operaatiot -->
     <div class="col">
       <div class="card sched" style="flex:1 1 auto">
-        <div class="card-h"><span class="ic">📋</span><h2>Päivän ohjelma</h2><span class="sub" id="schedDay">–</span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-agenda"/></svg></span><h2>Päivän ohjelma</h2><span class="sub" id="schedDay">–</span></div>
         <div class="list" id="schedList"><div class="muted">Ladataan ohjelmaa…</div></div>
       </div>
       <div class="card ops" style="flex:0 0 auto">
-        <div class="card-h"><span class="ic">🛠️</span><h2>Käynnissä olevat operaatiot</h2><span class="sub" id="opsStatus">–</span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-activity"/></svg></span><h2>Käynnissä olevat operaatiot</h2><span class="sub" id="opsStatus">–</span></div>
         <div class="opsbody" id="opsBody"><div class="muted">Ladataan…</div></div>
       </div>
     </div>
@@ -440,11 +468,11 @@ main{
     <!-- SARAKE 4: uutiset + osallistujaviestintä -->
     <div class="col">
       <div class="card news" style="flex:1 1 auto">
-        <div class="card-h"><span class="ic">📣</span><h2>Pääuutiset · Kaiku-sovellus</h2><span class="sub live-off" id="newsStatus"><span class="dot"></span>–</span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-megaphone"/></svg></span><h2>Pääuutiset · Kaiku-sovellus</h2><span class="sub" id="newsStatus">–</span></div>
         <div class="scroller"><div class="track" id="newsTrack"><div class="muted">Ladataan uutisia…</div></div></div>
       </div>
       <div class="card msgform" style="flex:0 0 auto">
-        <div class="card-h"><span class="ic">✉️</span><h2>Osallistujaviestintä</h2><span class="sub" id="formStatus">–</span></div>
+        <div class="card-h"><span class="ic"><svg aria-hidden="true"><use href="#i-mail"/></svg></span><h2>Osallistujaviestintä</h2><span class="sub" id="formStatus">–</span></div>
         <div class="formbody" id="formBody"><div class="muted">Ladataan viestejä…</div></div>
       </div>
     </div>
@@ -456,7 +484,7 @@ main{
 <div class="modal-backdrop" id="ticketModal" hidden>
   <div class="modal">
     <div class="modal-h">
-      <div class="mt"><span class="ic">🎫</span> Tiketit · Opke/Ospa</div>
+      <div class="mt"><svg class="mt-ic" aria-hidden="true"><use href="#i-ticket"/></svg> Tiketit · Opke/Ospa</div>
       <div class="mstatus" id="ticketStatus"><span class="spin"></span> Ladataan…</div>
       <div class="mactions">
         <button id="ticketLogin" type="button" class="mbtn ghost">🔑 Kirjaudu</button>
@@ -645,8 +673,8 @@ function renderWeather(S){
   const ff = S.ForestFireWarning || [];
   const active = ff.some(p => !isNaN(p.v) && p.v >= 2);
   const fireHtml = active
-    ? `<div class="fire warn"><span class="fic">🔥</span><div>Metsäpalovaroitus voimassa<span class="sml">Avotulen teko kielletty · Ilmatieteen laitos</span></div></div>`
-    : `<div class="fire ok"><span class="fic">✅</span><div>Ei metsäpalovaroitusta<span class="sml">Noudata silti tulentekovarovaisuutta · Ilmatieteen laitos</span></div></div>`;
+    ? `<div class="fire warn"><span class="fic"><svg aria-hidden="true"><use href="#i-flame"/></svg></span><div>Metsäpalovaroitus voimassa<span class="sml">Avotulen teko kielletty · Ilmatieteen laitos</span></div></div>`
+    : `<div class="fire ok"><span class="fic"><svg aria-hidden="true"><use href="#i-shield"/></svg></span><div>Ei metsäpalovaroitusta<span class="sml">Noudata silti tulentekovarovaisuutta · Ilmatieteen laitos</span></div></div>`;
 
   document.getElementById('weatherBody').innerHTML = `
     <div class="wnow">
@@ -724,7 +752,7 @@ function renderSchedule(){
     return `<div class="${cls}" style="--accent:${accent}">
       <div class="time">${sHm}${eHm!==sHm?('<br>'+eHm):''}</div>
       <div class="emoji">${emoji}</div>
-      <div class="body"><div class="t">${e.a.trim()}</div>${loc?`<div class="d">📍 ${loc}</div>`:''}</div>
+      <div class="body"><div class="t">${e.a.trim()}</div>${loc?`<div class="d">${mi('pin')}${esc(loc)}</div>`:''}</div>
       ${tag}
     </div>`;
   }).join('');
@@ -762,8 +790,8 @@ function relTime(iso){
 }
 function renderNews(list, live){
   const st = document.getElementById('newsStatus');
-  st.className = live ? 'sub' : 'sub live-off';
-  st.innerHTML = `<span class="dot"></span>${live ? 'Live' : 'Tallennettu'}`;
+  st.className = 'sub';
+  st.textContent = live ? ('Päivitetty ' + helParts(Date.now()).hm.replace(':','.')) : 'Tallennettu';
   const track = document.getElementById('newsTrack');
   track.innerHTML = list.map(a => `
     <a class="art" href="${a.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
@@ -853,10 +881,10 @@ function renderShift(){
     ? `<div class="shiftcard" style="--accent:${accent}"><div class="role">${role}</div><div class="name">${name}</div></div>`
     : `<div class="shiftcard empty" style="--accent:#c4bfb2"><div class="role">${role}</div><div class="name">— ei merkintää —</div></div>`;
   let html = `<div class="shiftnow">${nameCard('1. vuoro', cur.s1, 'var(--oranssi)')}${nameCard('2. vuoro', cur.s2, 'var(--meri)')}</div>`;
-  if (cur.y) html += `<div class="shifttask"><span class="ic">📌</span><div>Meneillään: <b>${cur.y}</b></div></div>`;
+  if (cur.y) html += `<div class="shifttask"><svg class="ti" aria-hidden="true"><use href="#i-pin"/></svg><div>Meneillään: <b>${cur.y}</b></div></div>`;
   if (cur.next){
     const nn = [cur.next.s1, cur.next.s2].filter(Boolean).join(' & ');
-    html += `<div class="shiftnext">🔁 Seuraava vuoronvaihto <span class="tg">klo ${cur.next.t.replace(':','.')}</span>${nn?` — ${nn}`:''}</div>`;
+    html += `<div class="shiftnext">${mi('swap')}Seuraava vuoronvaihto <span class="tg">klo ${cur.next.t.replace(':','.')}</span>${nn?` — ${nn}`:''}</div>`;
   }
   el.innerHTML = html;
 }
@@ -869,6 +897,7 @@ const SP_PAGE = 'https://partio.sharepoint.com/sites/Tiketin/Lists/OpkeOspa/AllI
 const ticketModal = document.getElementById('ticketModal');
 let ticketTimer = null;
 function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function mi(name){ return `<svg class="mi" aria-hidden="true"><use href="#i-${name}"/></svg>`; }
 function fmtStamp(iso){ if(!iso) return ''; const d=new Date(iso); return `${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`; }
 function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso); return `${d.getDate()}.${d.getMonth()+1}. klo ${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}`; }
 
@@ -895,13 +924,13 @@ function renderTickets(items){
   }
   body.innerHTML = items.map(t => {
     const meta = [
-      t.topic ? `🏷️ ${esc(t.topic)}` : '',
-      t.location ? `📍 ${esc(t.location)}` : '',
-      t.reporter ? `👤 ${esc(t.reporter)}` : '',
-      t.created ? `🕓 ${fmtDate(t.created)}` : ''
+      t.topic ? `${mi('tag')}${esc(t.topic)}` : '',
+      t.location ? `${mi('pin')}${esc(t.location)}` : '',
+      t.reporter ? `${mi('user')}${esc(t.reporter)}` : '',
+      t.created ? `${mi('clock')}${fmtDate(t.created)}` : ''
     ].filter(Boolean).map(m=>`<span>${m}</span>`).join('');
     return `<div class="tk">
-      <div class="tk-top"><span class="tk-status">Uusi</span>${t.safety?'<span class="tk-flag">⚠️ Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
+      <div class="tk-top"><span class="tk-status">Uusi</span>${t.safety?'<span class="tk-flag">'+mi('shield')+'Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
       <div class="tk-title">${esc(t.title||'(nimetön tiketti)')}</div>
       ${t.desc?`<div class="tk-desc">${esc(t.desc)}</div>`:''}
       <div class="tk-meta">${meta}</div>
@@ -948,11 +977,11 @@ async function loadTickets(){
 /* ============ UUDET TIKETIT -PANEELI (pääsivu) ============ */
 function renderUusi(list){
   const el = document.getElementById('uusiBody');
-  if (!list.length){ el.innerHTML = `<div class="allzero"><span class="big">✅</span>Ei uusia tikettejä</div>`; return; }
+  if (!list.length){ el.innerHTML = `<div class="allzero"><span class="big"><svg aria-hidden="true"><use href="#i-shield"/></svg></span>Ei uusia tikettejä</div>`; return; }
   el.innerHTML = list.map(t => `<div class="utk">
-    <div class="u-top"><span class="u-id">#${esc(t.id)}</span>${t.safety?'<span class="u-flag">⚠️ Turv.</span>':''}</div>
+    <div class="u-top"><span class="u-id">#${esc(t.id)}</span>${t.safety?'<span class="u-flag">'+mi('shield')+'Turv.</span>':''}</div>
     <div class="u-title">${esc(t.title||'(nimetön tiketti)')}</div>
-    ${(t.location||t.reporter)?`<div class="u-meta">${[t.location?'📍 '+esc(t.location):'',t.reporter?'👤 '+esc(t.reporter):''].filter(Boolean).join(' · ')}</div>`:''}
+    ${(t.location||t.reporter)?`<div class="u-meta">${[t.location?mi('pin')+esc(t.location):'',t.reporter?mi('user')+esc(t.reporter):''].filter(Boolean).join('&nbsp;&nbsp;')}</div>`:''}
   </div>`).join('');
 }
 async function loadUusi(){
@@ -990,9 +1019,9 @@ function renderOps(list){
   const el = document.getElementById('opsBody');
   if (!list.length){ el.innerHTML = `<div class="op-zero">Ei käynnissä olevia operaatioita</div>`; return; }
   el.innerHTML = list.map(t => `<div class="op">
-    <div class="o-top"><span class="o-id">#${esc(t.id)}</span>${t.safety?'<span class="o-flag">⚠️ Turv.</span>':''}</div>
+    <div class="o-top"><span class="o-id">#${esc(t.id)}</span>${t.safety?'<span class="o-flag">'+mi('shield')+'Turv.</span>':''}</div>
     <div class="o-title">${esc(t.title||'(nimetön tiketti)')}</div>
-    ${(t.topic||t.location||t.reporter)?`<div class="o-meta">${[t.topic?'🏷️ '+esc(t.topic):'',t.location?'📍 '+esc(t.location):'',t.reporter?'👤 '+esc(t.reporter):''].filter(Boolean).join(' · ')}</div>`:''}
+    ${(t.topic||t.location||t.reporter)?`<div class="o-meta">${[t.topic?mi('tag')+esc(t.topic):'',t.location?mi('pin')+esc(t.location):'',t.reporter?mi('user')+esc(t.reporter):''].filter(Boolean).join('&nbsp;&nbsp;')}</div>`:''}
   </div>`).join('');
 }
 
@@ -1100,10 +1129,10 @@ function showCelebrateToast(pct){
 const BUCKET_COLORS = { 'Uusi':'#FF633A','Käsittelemättömät':'#FF8940','Odottaa myöhempää käsittelyä':'#FFAE40',
   'Käsittelyssä operaatiokeskuksessa':'#005448','Käsittelyssä muilla':'#00445E','Valmis':'#7a9b6f','Ei käsitellä':'#542337' };
 function ticketCard(t, statusName){
-  const meta = [ t.topic?`🏷️ ${esc(t.topic)}`:'', t.location?`📍 ${esc(t.location)}`:'', t.reporter?`👤 ${esc(t.reporter)}`:'', t.created?`🕓 ${fmtDate(t.created)}`:'' ]
+  const meta = [ t.topic?`${mi('tag')}${esc(t.topic)}`:'', t.location?`${mi('pin')}${esc(t.location)}`:'', t.reporter?`${mi('user')}${esc(t.reporter)}`:'', t.created?`${mi('clock')}${fmtDate(t.created)}`:'' ]
     .filter(Boolean).map(m=>`<span>${m}</span>`).join('');
   return `<div class="tk">
-    <div class="tk-top"><span class="tk-status" style="background:${BUCKET_COLORS[statusName]||'var(--punainen)'}">${esc(statusName||'Uusi')}</span>${t.safety?'<span class="tk-flag">⚠️ Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
+    <div class="tk-top"><span class="tk-status" style="background:${BUCKET_COLORS[statusName]||'var(--punainen)'}">${esc(statusName||'Uusi')}</span>${t.safety?'<span class="tk-flag">'+mi('shield')+'Turvallisuus</span>':''}<span class="tk-id">#${esc(t.id)}</span></div>
     <div class="tk-title">${esc(t.title||'(nimetön tiketti)')}</div>
     ${t.desc?`<div class="tk-desc">${esc(t.desc)}</div>`:''}
     <div class="tk-meta">${meta}</div>

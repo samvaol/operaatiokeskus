@@ -65,12 +65,21 @@ Every source has an **embedded fallback** so the dashboard never goes blank.
   reads `j.buckets`. Override host with `?ticketApi=`.
 - Also serves `GET /api/form` → `{status, entries:[{id,when,who,subject,message,extras}]}` — the
   **3 latest** rows of the *Osallistujaviestintä* Excel workbook (site `UudenmaanPiirileiri2026`,
-  `GetFileById('<sourcedoc-GUID>')/$value`; the tenant login covers all sites). The `.xlsx` is
-  parsed **in-process, no deps** by `unzip` (central-directory + `zlib.inflateRawSync`) →
-  `parseSheet`/`parseSharedStrings`/`parseStyles`/`extractForm`. Date columns are detected from
-  `styles.xml` (numFmt) and Excel serials converted with UTC getters; columns map to roles by
-  header (`roleOf`). Refreshed every 60 s (live). Dashboard reads it at `/api/form` (override with
-  `?formApi=`, else derived from `?ticketApi=`).
+  `GetFileById('<sourcedoc-GUID>')/$value`). The `.xlsx` is parsed **in-process, no deps** by
+  `unzip` (central-directory + `zlib.inflateRawSync`) → `parseSheet`/`parseSharedStrings`/
+  `parseStyles`/`extractForm`. Date columns are detected from `styles.xml` (numFmt) and Excel
+  serials converted with UTC getters; columns map to roles by header (`roleOf`). Refreshed every
+  60 s (live). Dashboard reads it at `/api/form` (override with `?formApi=`, else derived from
+  `?ticketApi=`).
+- **Cross-site-collection auth (was the "form never updates" bug, fixed c2b63d8):** SharePoint
+  Online's `FedAuth` cookie is **per site collection**, so logging into `/sites/Tiketin` does NOT
+  authorize the workbook on `/sites/UudenmaanPiirileiri2026`. `ensureFormPage` warms it by
+  navigating a real page to `FORM_SITE` (browser completes the rtFa→FedAuth SSO handshake and the
+  cookie lands in the context). And because an **unauthenticated SharePoint request returns the
+  sign-in HTML with HTTP 200**, the binary download rejects `text/html` and verifies the zip magic
+  `PK\x03\x04` (`buf.readUInt32BE(0)===0x504b0304`) — otherwise a login page unzips to nothing and
+  the panel silently shows "Ei viestejä" as `status:'ok'`. Diagnose via `/api/form` (`status`,
+  `error`) + the server console `[form]` lines.
 - Startup is guarded by `if (require.main === module) start()`; `module.exports` exposes the xlsx
   helpers so they can be unit-tested (`node -e "require('./server.js')…"`) without Playwright.
 - Run: `cd ticket-server && npm install && npm start`. `HEADLESS=1` runs headless (only works
@@ -79,8 +88,30 @@ Every source has an **embedded fallback** so the dashboard never goes blank.
 ## Conventions
 - **Visual identity**: Bricolage Grotesque; colors metsä `#005448`, meri `#00445E`, rusko
   `#542337`, savu `#F9F3E6`, punainen `#FF633A`, oranssi `#FF8940`, kulta `#FFAE40`.
-  Each `.card` sets a `--accent` (timer=kulta, weather=meri, shift=rusko, sched=oranssi,
-  news=punainen) driving its top stripe + icon chip.
+- **Two colour groups that must NOT be mixed** (brand rule, PDF p.6): *Kaiku 1* =
+  punainen/oranssi/kulta, *Kaiku 2* = magenta/laventeli/sininen. The dashboard uses **only
+  Kaiku 1 + luonnonvärit** (metsä/meri/rusko/savu) — do **not** pull magenta/laventeli/sininen
+  back in (an earlier per-category schedule palette wrongly did).
+- **Colour carries meaning, it doesn't decorate** (deliberate anti-"vibe-coded" system):
+  each `.card` sets a `--accent` from **four roles only** — `kulta` = the camp heartbeat
+  (Leirikello), `meri` = environment (Sää, Sadetutka), `punainen` = needs attention (Uudet
+  tiketit; also NYT + palovaroitus), `metsä` = structural/informational (everything else).
+  Don't reintroduce a per-card rainbow. Cards are a plain white surface + `1px var(--line)`
+  hairline + soft shadow — **no coloured top stripe**; the accent shows only in the header
+  **icon chip** (and data). Text uses the `--ink`/`--ink-2`/`--ink-3` scale. The **schedule**
+  is state-coloured, not category-coloured: left border + time go punainen (`.now`) / kulta
+  (`.next`) / neutral, so it never rainbows.
+- **Icons follow the Kaiku "Symboli" idiom**, NOT thin generic line icons: a curated inline-SVG
+  set defined once as `<symbol>`s in a hidden sprite at the top of `<body>` (`#i-clock`,
+  `#i-ticket`, `#i-weather`, `#i-radar`, `#i-agenda`, `#i-activity`, `#i-megaphone`, `#i-mail`,
+  `#i-flame`, `#i-pin`/`#i-user`/`#i-tag`/`#i-swap`/`#i-shield`), referenced via `<use>`.
+  Header chips are a **solid accent-colour circle** (`.card-h .ic`, `border-radius:50%`) with a
+  **bold, rounded** mark (`stroke-width ~2.3`, round caps) — echoing the brand's round Symboli
+  marks. JS meta rows use the `mi('name')` helper (thinner, `currentColor`). **No emoji as UI
+  chrome**; the only emoji kept are genuine *data glyphs* — weather SmartSymbol + the per-event
+  schedule category markers.
+- **No "LIVE" / status-dot badges** — those read as vibe-coded. Liveness is shown by the ticking
+  clock and per-card "Päivitetty HH.MM" timestamps, not a pulsing dot.
 - The header has a **Kaiku-1 gradient edge** (`header::after`). The old stretched aaltoviiva
   was removed on purpose — **do not re-add the header wave.**
 - The **kuosi** background SVG must use a wide viewBox (`0 0 1920 220`) or it scales ~5× too
